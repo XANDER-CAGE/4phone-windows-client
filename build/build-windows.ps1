@@ -181,9 +181,12 @@ $msbuild = @($msbuildCandidates)[0]
 $installedTripletRoot = Join-Path $VcpkgInstalledRoot $Triplet
 $oldInclude = $env:INCLUDE
 $oldLib = $env:LIB
+$oldCl = $env:CL
 try {
     $env:INCLUDE = "$(Join-Path $installedTripletRoot "include");$oldInclude"
     $env:LIB = "$(Join-Path $installedTripletRoot "lib");$oldLib"
+    $opusInclude = Join-Path $installedTripletRoot "include"
+    $env:CL = "/I`"$opusInclude`" $oldCl".Trim()
 
     Invoke-NativeCommand $msbuild @(
         (Join-Path $PjProjectRoot "pjsip-apps\build\libpjproject.vcxproj"),
@@ -206,6 +209,7 @@ try {
 finally {
     $env:INCLUDE = $oldInclude
     $env:LIB = $oldLib
+    $env:CL = $oldCl
 }
 
 Write-Host "Сборка 4phone завершена: $MicroSipRoot\$Configuration\4phone.exe"
