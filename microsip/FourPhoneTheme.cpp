@@ -16,7 +16,7 @@ namespace
 		::SendMessage(
 			window,
 			WM_SETFONT,
-			reinterpret_cast<WPARAM>(parameter),
+			static_cast<WPARAM>(parameter),
 			TRUE);
 		return TRUE;
 	}

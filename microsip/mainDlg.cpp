@@ -5090,7 +5090,7 @@ LRESULT CmainDlg::OnNcHitTest(CPoint point)
 			clientPoint,
 			CWP_SKIPINVISIBLE);
 		if (child != NULL && child != GetSafeHwnd()) {
-			const int id = GetDlgCtrlID(child);
+			const int id = ::GetDlgCtrlID(child);
 			if (id == IDC_MAIN_MINIMIZE) {
 				return HTMINBUTTON;
 			}
