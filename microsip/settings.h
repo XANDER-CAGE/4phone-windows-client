@@ -102,6 +102,7 @@ struct AccountSettings {
 	bool lastCallHasVideo;
 
 	CString updatesInterval;
+	CString language;
 
 	int activeTab;
 	bool alwaysOnTop;

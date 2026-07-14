@@ -10,6 +10,7 @@
 
 #include "FourPhoneCredentialStore.h"
 #include "settings.h"
+#include "langpack.h"
 
 namespace
 {
@@ -67,14 +68,15 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 
 	SetWindowText(_T("4phone"));
 	GetDlgItem(IDC_4PHONE_HEADING)->SetWindowText(
-		_T("Вход в онлайн-АТС 4phone"));
+		Translate(_T("Sign in to 4phone")));
 	GetDlgItem(IDC_4PHONE_EMAIL_LABEL)->SetWindowText(_T("Email"));
-	GetDlgItem(IDC_4PHONE_PASSWORD_LABEL)->SetWindowText(_T("Пароль"));
+	GetDlgItem(IDC_4PHONE_PASSWORD_LABEL)->SetWindowText(
+		Translate(_T("Password")));
 	GetDlgItem(IDC_4PHONE_CODE_LABEL)->SetWindowText(
-		_T("Код 2FA или резервный код"));
+		Translate(_T("2FA code or recovery code")));
 	GetDlgItem(IDC_4PHONE_EXTENSION_LABEL)->SetWindowText(
-		_T("Добавочный номер"));
-	GetDlgItem(IDCANCEL)->SetWindowText(_T("Отмена"));
+		Translate(_T("Extension")));
+	GetDlgItem(IDCANCEL)->SetWindowText(Translate(_T("Cancel")));
 
 	CEdit* password = static_cast<CEdit*>(
 		GetDlgItem(IDC_4PHONE_PASSWORD));
@@ -85,7 +87,7 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 
 	ShowStep(StepCredentials);
 	SetStatus(
-		_T("Введите email и пароль от личного кабинета 4phone"),
+		Translate(_T("Enter your 4phone email and password")),
 		false);
 	CenterWindow();
 
@@ -110,12 +112,12 @@ void CFourPhoneLoginDlg::OnOK()
 		email.Trim();
 
 		if (email.IsEmpty() || password.IsEmpty()) {
-			SetStatus(_T("Введите email и пароль"), true);
+			SetStatus(Translate(_T("Enter email and password")), true);
 			return;
 		}
 
 		SetBusy(true);
-		SetStatus(_T("Проверяем учетную запись..."), false);
+		SetStatus(Translate(_T("Checking your account...")), false);
 		CWaitCursor waitCursor;
 
 		FourPhoneLoginResponse response;
@@ -136,7 +138,8 @@ void CFourPhoneLoginDlg::OnOK()
 			SecureClear(response.challengeToken);
 			ShowStep(StepTwoFactor);
 			SetStatus(
-				_T("Введите код из приложения-аутентификатора"),
+				Translate(_T(
+					"Enter the code from your authenticator app")),
 				false);
 			SetBusy(false);
 			return;
@@ -158,12 +161,12 @@ void CFourPhoneLoginDlg::OnOK()
 			verificationValue);
 		verificationValue.Trim();
 		if (verificationValue.IsEmpty()) {
-			SetStatus(_T("Введите код подтверждения"), true);
+			SetStatus(Translate(_T("Enter verification code")), true);
 			return;
 		}
 
 		SetBusy(true);
-		SetStatus(_T("Проверяем код..."), false);
+		SetStatus(Translate(_T("Checking code...")), false);
 		CWaitCursor waitCursor;
 
 		FourPhoneAuthTokens tokens;
@@ -192,7 +195,7 @@ void CFourPhoneLoginDlg::OnOK()
 
 	if (step == StepExtension) {
 		SetBusy(true);
-		SetStatus(_T("Получаем настройки телефонии..."), false);
+		SetStatus(Translate(_T("Loading telephony settings...")), false);
 		CWaitCursor waitCursor;
 		if (!LoadSelectedSipConfig()) {
 			SetBusy(false);
@@ -209,7 +212,7 @@ bool CFourPhoneLoginDlg::CompleteAuthentication(
 	SecureClear(tokens.accessToken);
 	SecureClear(tokens.refreshToken);
 
-	SetStatus(_T("Получаем доступные добавочные..."), false);
+	SetStatus(Translate(_T("Loading available extensions...")), false);
 	return LoadExtensions();
 }
 
@@ -221,14 +224,17 @@ bool CFourPhoneLoginDlg::LoadExtensions()
 	}
 	if (extensions.empty()) {
 		SetStatus(
-			_T("К пользователю не привязан активный добавочный номер"),
+			Translate(_T(
+				"No active extension is assigned to your user")),
 			true);
 		return false;
 	}
 
 	if (extensions.size() == 1) {
 		selectedExtensionId = extensions[0].id;
-		SetStatus(_T("Применяем настройки телефонии..."), false);
+		SetStatus(
+			Translate(_T("Applying telephony settings...")),
+			false);
 		return LoadSelectedSipConfig();
 	}
 
@@ -247,7 +253,9 @@ bool CFourPhoneLoginDlg::LoadExtensions()
 	extensionBox->SetCurSel(0);
 
 	ShowStep(StepExtension);
-	SetStatus(_T("Выберите добавочный для этого компьютера"), false);
+	SetStatus(
+		Translate(_T("Select an extension for this computer")),
+		false);
 	return true;
 }
 
@@ -259,14 +267,14 @@ bool CFourPhoneLoginDlg::LoadSelectedSipConfig()
 		const int selectedIndex = extensionBox->GetCurSel();
 		if (selectedIndex < 0 ||
 			selectedIndex >= static_cast<int>(extensions.size())) {
-			SetStatus(_T("Выберите добавочный номер"), true);
+			SetStatus(Translate(_T("Select an extension")), true);
 			return false;
 		}
 		selectedExtensionId = extensions[selectedIndex].id;
 	}
 
 	if (selectedExtensionId.IsEmpty()) {
-		SetStatus(_T("Добавочный номер не выбран"), true);
+		SetStatus(Translate(_T("No extension selected")), true);
 		return false;
 	}
 	if (!api.GetSipConfig(selectedExtensionId, sipConfig)) {
@@ -314,7 +322,9 @@ void CFourPhoneLoginDlg::ShowStep(Step nextStep)
 		extensionVisibility);
 
 	GetDlgItem(IDOK)->SetWindowText(
-		step == StepExtension ? _T("Подключить") : _T("Войти"));
+		step == StepExtension
+			? Translate(_T("Connect"))
+			: Translate(_T("Sign in")));
 
 	if (step == StepTwoFactor) {
 		GetDlgItem(IDC_4PHONE_CODE)->SetFocus();
@@ -335,8 +345,10 @@ void CFourPhoneLoginDlg::SetBusy(bool busy)
 	GetDlgItem(IDC_4PHONE_EXTENSION)->EnableWindow(!busy);
 	GetDlgItem(IDOK)->SetWindowText(
 		busy
-			? _T("Подождите...")
-			: (step == StepExtension ? _T("Подключить") : _T("Войти")));
+			? Translate(_T("Please wait..."))
+			: (step == StepExtension
+				? Translate(_T("Connect"))
+				: Translate(_T("Sign in"))));
 	UpdateWindow();
 }
 

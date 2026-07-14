@@ -10,6 +10,7 @@
 
 #include "FourPhoneCredentialStore.h"
 #include "FourPhoneLoginDlg.h"
+#include "langpack.h"
 #include "settings.h"
 
 namespace
@@ -65,7 +66,7 @@ FourPhoneRestoreResult CFourPhoneProvisioning::TryRestoreSession(
 	extensionId.Empty();
 	error.Empty();
 	if (IsLoggedOut()) {
-		error = _T("Сеанс 4phone завершен");
+		error = Translate(_T("Your 4phone session has ended"));
 		return RequireLogin();
 	}
 
@@ -110,8 +111,8 @@ FourPhoneRestoreResult CFourPhoneProvisioning::TryRestoreSession(
 		return ApiFailureResult(api);
 	}
 	if (extensions.empty()) {
-		error = _T(
-			"К пользователю не привязан активный добавочный номер");
+		error = Translate(_T(
+			"No active extension is assigned to your user"));
 		return RequireLogin();
 	}
 
@@ -126,7 +127,7 @@ FourPhoneRestoreResult CFourPhoneProvisioning::TryRestoreSession(
 		extensionId = extensions[0].id;
 	}
 	if (extensionId.IsEmpty()) {
-		error = _T("Необходимо выбрать добавочный номер");
+		error = Translate(_T("Select an extension"));
 		return RequireLogin();
 	}
 
@@ -195,14 +196,15 @@ bool CFourPhoneProvisioning::SaveAccount(
 	error.Empty();
 	Account account = value;
 	if (!accountSettings.AccountSave(1, &account)) {
-		error = _T(
-			"Windows не смог защитить SIP-пароль. "
-			"Настройки не сохранены");
+		error = Translate(_T(
+			"Windows could not protect the SIP password. "
+			"Settings were not saved"));
 		accountSettings.AccountDelete(1);
 		return false;
 	}
 	if (!SetLoggedOut(false)) {
-		error = _T("Не удалось сохранить состояние входа 4phone");
+		error = Translate(
+			_T("Could not save the 4phone sign-in state"));
 		accountSettings.AccountDelete(1);
 		return false;
 	}
@@ -269,8 +271,8 @@ bool CFourPhoneProvisioning::Logout(CString& error)
 		if (!error.IsEmpty()) {
 			error.Append(_T("\r\n"));
 		}
-		error.Append(_T(
-			"Не удалось сохранить локальный признак выхода"));
+		error.Append(Translate(
+			_T("Could not save the local sign-out state")));
 	}
 	return serverRevoked && credentialsDeleted && logoutMarkerSaved;
 }

@@ -1,0 +1,1159 @@
+﻿Language Pack
+Language: Uzbek
+Last-Modified-Using: 4phone
+Authors: MicroSIP community, 4phone
+Author-email: support@4phone.uz
+Locale: 0443
+RTL: 0
+
+[A contact with this phone number already exists. Do you want to replace it?]
+Ushbu telefon raqamiga ega kontakt allaqachon mavjud. Uni almashtirmoqchimisiz?
+
+[A critical error occurred in the audio subsystem]
+Ovoz quyi tizimida jiddiy xatolik yuz berdi
+
+[A critical error occurred in the module on your PC]
+Kompyuteringizdagi modulda jiddiy xatolik yuz berdi
+
+[A critical error occurred in the video subsystem]
+Video quyi tizimida jiddiy xatolik yuz berdi
+
+[A Lite version without video support is also available.]
+Video qo'llab-quvvatlamaydigan Lite versiyasi ham mavjud.
+
+[A newer version may be available]
+Yangiroq versiyasi mavjud bo'lishi mumkin
+
+[Account]
+Hisob
+
+[Account Name]
+Hisob nomi
+
+[Account or credentials not found.]
+Hisob qaydnomasi yoki hisobga olish ma'lumotlari topilmadi
+
+[Accounts]
+Hisoblar
+
+[Activate or add an account in the main menu of the softphone.]
+Yumshoq telefonning asosiy menyusida hisob qaydnomasini faollashtiring yoki qo'shing.
+
+[Active Calls]
+Faol qo'ng'iroqlar
+
+[Add]
+Qo'shish
+
+[Add Account...]
+Akkaunt qo'shish...
+
+[Add Contact]
+Kontakt qo'shish
+
+[Address]
+Manzil
+
+[Address Incomplete]
+Manzil tugallanmagan
+
+[All Calls]
+Barcha qo'ng'iroqlar
+
+[Allow IP Rewrite]
+IP qayta yozishga ruxsat bering
+
+[Always on Top]
+Har doim tepada
+
+[Answer]
+Javob
+
+[Answer with Video]
+Video bilan javob
+
+[Answered Elsewhere]
+Boshqa joyda javob berdi
+
+[Are you sure you want to delete the selected items?]
+Tanlangan elementlarni o'chirishni xohlaysizmi?
+
+[Are you sure you want to delete?]
+Haqiqatan ham oʻchirib tashlamoqchimisiz?
+
+[Are you sure you want to remove?]
+Haqiqatan ham olib tashlamoqchimisiz?
+
+[Ask your SIP provider how to configure the account correctly.]
+SIP provayderingizdan hisobni qanday qilib to'g'ri sozlashni so'rang.
+
+[Attended Transfer]
+Ishtirok etish
+
+[Attended transfer is not available in single-call mode. Disable this mode or use PBX feature codes.]
+Yakka qo'ng'iroq rejimida ishtirokchi o'tkazish mavjud emas. Ushbu rejimni o'chiring yoki PBX funksiya kodlaridan foydalaning.
+
+[Auto]
+Avtomatik
+
+[Auto Answer]
+Avtomatik javob
+
+[Auto Conference]
+Avtomatik konferensiya
+
+[Available Codecs]
+Mavjud kodeklar
+
+[Away]
+Joyida emas
+
+[Backspace]
+Backspace
+
+[Bad Gateway]
+Yomon shlyuz
+
+[Bitrate]
+Bit tezligi
+
+[Blind Transfer]
+Ko'r-ko'rona o'tkazish
+
+[Bottom Position]
+Pastki joylashuv
+
+[Bring to Front on Incoming Call]
+Kiruvchi qo'ng'iroqni oldinga olib keling
+
+[Browse...]
+Ko‘rib chiqish...
+
+[Busy Here]
+Bu yerda band
+
+[Call]
+Qo'ng'iroq qiling
+
+[Call All]
+Hammaga qo'ng'iroq qiling
+
+[Call Ended]
+Qo'ng'iroq tugadi
+
+[Call failed:]
+Qo'ng'iroq amalga oshmadi:
+
+[Call Forwarding]
+Qo'ng'iroqlarni boshqa raqamga yo'naltirish
+
+[Call is Active]
+Qo‘ng‘iroq faol
+
+[Call Limit]
+Qo'ng'iroq chegarasi
+
+[Call on Hold]
+Qo'ng'iroqni kutish
+
+[Call on Local Hold]
+Mahalliy ushlab turish rejimida qo'ng'iroq qiling
+
+[Call on Remote Hold]
+Masofadan ushlab turishga qo'ng'iroq qiling
+
+[Call Pickup]
+Qo'ng'iroqni tutib olish
+
+[Call Recording]
+Qo'ng'iroqni yozib olish
+
+[Call Transfer]
+Qo'ng'iroqni o'tkazish
+
+[Call transfered successfully, disconnecting call]
+Qo‘ng‘iroq muvaffaqiyatli uzatildi, qo‘ng‘iroq uzildi
+
+[Call URL]
+Qo'ng'iroq URL
+
+[Call Waiting]
+Qo'ng'iroqni kutish
+
+[Caller Number]
+Qo'ng'iroq qiluvchi raqami
+
+[Calling]
+Qo'ng'iroq qilish
+
+[Camera]
+Kamera
+
+[Camera access is turned off.]
+Kameraga kirish o'chirilgan.
+
+[Cancel]
+Bekor qilish
+
+[Canceled]
+Bekor qilingan
+
+[Cannot get IP address of the called host]
+Chaqirilayotgan xostning IP manzilini ololmadi
+
+[Check for Updates]
+Yangilanishlarni tekshiring
+
+[City]
+Shahar
+
+[Clear]
+Toza
+
+[Close All]
+Hammasini yopish
+
+[close window to ignore call]
+qo'ng'iroqni e'tiborsiz qoldirish uchun oynani yoping
+
+[Comment]
+Izoh
+
+[Conference]
+Konferentsiya
+
+[Connect]
+Ulash
+
+[Connected]
+Ulangan
+
+[Connecting]
+Ulanmoqda
+
+[Connecting...]
+Ulanmoqda...
+
+[Connection Failed]
+Ulanish amalga oshmadi
+
+[Connection refused]
+Ulanishga ruxsat berilmadi
+
+[Connection timed out]
+Ulanish vaqti tugadi
+
+[Contact]
+Aloqa
+
+[Contact already exists]
+Kontakt allaqachon mavjud
+
+[Contacts]
+Kontaktlar
+
+[Control Button]
+Boshqarish tugmasi
+
+[Copy]
+Nusxalash
+
+[Custom]
+Maxsus
+
+[Daily]
+Kundalik
+
+[Decline]
+Rad etish
+
+[Declined]
+Rad etildi
+
+[Default]
+Standart
+
+[Default List Action]
+Standart roʻyxat harakati
+
+[Delay]
+Kechiktirish
+
+[Delete]
+Oʻchirish
+
+[Delete Account]
+Hisobni o'chirish
+
+[Delete Call Log]
+Qo'ng'iroqlar jurnalini o'chirish
+
+[Delete Contact]
+Kontaktni o'chirish
+
+[Deny Incoming]
+Kirishni rad etish
+
+[Dial Plan]
+Terish rejasi
+
+[Dialing Prefix]
+Raqamni kiritish prefiksi
+
+[Different Domain]
+Turli domen
+
+[Different Remote Domain]
+Masofadagi boshqa domen
+
+[Different User]
+Boshqa foydalanuvchi
+
+[Different User or Domain]
+Boshqa foydalanuvchi yoki domen
+
+[Directory of Users]
+Foydalanuvchilar katalogi
+
+[Disable Local Account]
+Mahalliy hisobni o'chirib qo'ying
+
+[Disable Messaging]
+Xabarlar funksiyasini o'chirish
+
+[Disable name lookup in directory]
+Katalogda nom qidirishni o'chirib qo'yish
+
+[Disable Session Timers]
+Sessiya taymerlarini o'chirib qo'yish
+
+[Disable Video]
+Videoni o'chirib qo'yish
+
+[Disabled]
+O‘chirilgan
+
+[Disconnect]
+Ulanishni uzing
+
+[Display Name]
+Ko'rsatiladigan ism
+
+[display password]
+parolni ko'rsatish
+
+[Do Not Disturb]
+Bezovta qilinmasin
+
+[Do you want to delete user data and program settings? This action cannot be undone.]
+Foydalanuvchi maʼlumotlari va dastur sozlamalarini oʻchirib tashlamoqchimisiz? Bu amalni ortga qaytarib bo‘lmaydi.
+
+[Do you want to update now?]
+Hozir yangilamoqchimisiz?
+
+[Domain]
+Domen
+
+[DTMF Method]
+DTMF usuli
+
+[Duration]
+Davomiyligi
+
+[E-mail Address]
+Elektron pochta manzili
+
+[Edit]
+Tahrirlash
+
+[Edit Account]
+Hisobni tahrirlash
+
+[Edit Local Account]
+Mahalliy hisobni tahrirlash
+
+[Enable]
+Yoqish
+
+[Enable Local Account]
+Mahalliy hisobni yoqing
+
+[Enable Log File]
+Jurnal faylini yoqish
+
+[Enabled Codecs]
+Yoqilgan kodeklar
+
+[End]
+Qo'ng'iroqni tugatish
+
+[End Call]
+Qo'ng'iroqni tugatish
+
+[Exit]
+Chiqish
+
+[Export]
+Eksport qilish
+
+[Export Call Log]
+Qo'ng'iroqlar jurnalini eksport qilish
+
+[Export Configuration]
+Eksport konfiguratsiyasi
+
+[Export Contacts]
+Kontaktlarni eksport qilish
+
+[Export/Import]
+Eksport/Import
+
+[Feature Codes]
+Xususiyat kodlari
+
+[final]
+final
+
+[First Name]
+Ism
+
+[Force Codec for Incoming]
+Kiruvchi uchun kodekni majburlash
+
+[From]
+Kimdan
+
+[Handle IP changes]
+IP o'zgarishlarini boshqarish
+
+[Handle Media Buttons]
+Media tugmalaridan foydalanish
+
+[Hard]
+Qattiq
+
+[Headset Support]
+Eshitish vositasini qo'llab-quvvatlash
+
+[Help]
+Yordam bering
+
+[Hide Caller ID]
+Qo'ng'iroq qiluvchining identifikatorini yashirish
+
+[Hold]
+Tutmoq
+
+[Idle]
+Bo'sh
+
+[If you don't have your account details, contact your IP telephony provider to obtain them.]
+Agar sizda hisob ma'lumotlari bo'lmasa, ularni olish uchun IP telefoniya provayderingizga murojaat qiling.
+
+[Import]
+Import
+
+[Import Call Log]
+Qo'ng'iroqlar jurnalini import qilish
+
+[Import Configuration]
+Import konfiguratsiyasi
+
+[Import Contacts]
+Kontaktlarni import qilish
+
+[Incoming Call]
+Kiruvchi qo'ng'iroq
+
+[Incorrect dialing or non-existent number.]
+Noto'g'ri terish yoki mavjud bo'lmagan raqam
+
+[Incorrect Password]
+Noto'g'ri parol
+
+[Information]
+Ma'lumot
+
+[Invalid Number]
+Yaroqsiz raqam
+
+[Invite to Conference]
+Konferentsiyaga taklif qilish
+
+[Keep-Alive]
+Tirik qoling
+
+[Label]
+Yorliq
+
+[Last Call]
+Oxirgi qo'ng'iroq
+
+[Last Name]
+Familiya
+
+[Local]
+Mahalliy
+
+[Local Video]
+Mahalliy video
+
+[Login]
+Tizimga kirish
+
+[Logs]
+Jurnallar
+
+[Make Active]
+Faol qiling
+
+[Mandatory]
+Majburiy
+
+[Media Encryption]
+Media shifrlash
+
+[Menu]
+Menyu
+
+[Merge]
+go
+
+[Merge All]
+Barchasini birlashtirish
+
+[Message]
+Xabar
+
+[Method Not Allowed]
+Usul ruxsat etilmagan
+
+[Microphone]
+Mikrofon
+
+[Microphone access is blocked. Please check your antivirus settings or security software.]
+Antivirus sozlamalarida mikrofonga kirishga ruxsat bering.
+
+[Microphone access is turned off. Enable it in Windows Settings.]
+Windows sozlamalarida mikrofon ruxsatini to'rilang (Windows sozlamalari => Maxfiylik => Mikrofon).
+
+[Microphone Amplification]
+Mikrofonni kuchaytirish
+
+[Microphone and speakers are required.]
+Mikrofon va karnaylar talab qilinadi.
+
+[Microphone Level]
+Mikrofon darajasi
+
+[Missed Call]
+Javobsiz qo'ng'iroq
+
+[Mobile Number]
+Uyali telefon raqami
+
+[Monthly]
+Oylik
+
+[Multi Monitor Support]
+Ko'p monitorni qo'llab-quvvatlash
+
+[Mute Microphone]
+Mikrofonni o'chirish
+
+[Mute Speaker]
+Karnay ovozini oʻchirish
+
+[Name]
+Ism
+
+[Nameserver]
+Nameserver
+
+[Network connection is not available.]
+Tarmoq ulanishi mavjud emas.
+
+[Network is unreachable]
+Tarmoqqa ulanish imkonsiz
+
+[Never]
+Hech qachon
+
+[No]
+Yo'q
+
+[No address found]
+Hech qanday manzil topilmadi
+
+[No microphone or audio output device was detected. Please connect them to make calls.]
+Mikrofon yoki audio chiqish qurilmasi aniqlanmadi. Qo'ng'iroq qilish uchun ularni ulang.
+
+[Not acceptable here]
+Bu erda qabul qilinishi mumkin emas
+
+[Not Found]
+Topilmadi
+
+[Not online]
+Onlayn emas
+
+[Number]
+Raqam
+
+[Offline]
+Oflayn
+
+[OK]
+OK
+
+[On the phone]
+Telefonda
+
+[Online]
+Onlayn
+
+[Open the download page now?]
+Yuklab olish sahifasini hozir ochasizmi?
+
+[Open troubleshooting page?]
+Muammolarni bartaraf etish sahifasi ochilsinmi?
+
+[Optional]
+Ixtiyoriy
+
+[Options]
+Tanlovlar
+
+[Password]
+Parol
+
+[Phone]
+Telefon
+
+[Phone Number]
+Telefon raqami
+
+[Please check that your firewall or antivirus is not blocking this application.]
+Iltimos, xavfsizlik devoringiz yoki antivirusingiz ushbu ilovani bloklamaganligini tekshiring.
+
+[Please fill out all required fields.]
+Iltimos, barcha kerakli maydonlarni to'ldiring.
+
+[Please fill out at least the required fields marked with *.]
+Iltimos, barcha * bilan belgilangan maydonlarni to'ldiring.
+
+[Please visit our website to check for updates.]
+Yangilanishlarni tekshirish uchun veb-saytimizga tashrif buyuring.
+
+[Please visit our website to download the latest version.]
+Eng so'nggi versiyasini yuklab olish uchun veb-saytimizga tashrif buyuring.
+
+[Postal Code]
+Pochta Indeksi
+
+[Presence Subscription]
+Mavjud obuna
+
+[Public Address]
+Jamoat manzili
+
+[Publish Presence]
+Mavjudlikni e'lon qilish
+
+[Quarterly]
+Har chorakda
+
+[Random Popup Position]
+Tasodifiy qalqib chiqadigan joy
+
+[Ready]
+Tayyor
+
+[Redial]
+Qayta terish
+
+[Register]
+Ro'yxatdan o'tish
+
+[Register Refresh]
+Ro'yxatdan o'tishni yangilang
+
+[Remember Details]
+Tafsilotlarni eslab qoling
+
+[Request Terminated]
+So‘rov bekor qilindi
+
+[Request Timeout]
+Vaqtni talab qilish
+
+[Ring Device]
+Jiringlash qurilmasi
+
+[Ringing]
+Jiringlash
+
+[Ringtone]
+Rington
+
+[Ringtone Volume]
+Qo'ng'iroq tovush balandligi
+
+[RTP Ports]
+RTP portlari
+
+[Run at System Startup]
+Tizimni ishga tushirishda ishga tushiring
+
+[Run Batch]
+To'plamni ishga tushirish
+
+[Save]
+Saqlash
+
+[sec]
+soniya
+
+[See the Freezes or Crashes help section.]
+"Qolib qolish yoki ishdan chiqish" yordam bo'limiga qarang.
+
+[Select All]
+Hammasini belgilash
+
+[Selected Accounts]
+Tanlangan hisoblar
+
+[Send Crash Report]
+Ishdan chiqish hisobotini yuboring
+
+[Separate]
+Alohida
+
+[Separate All]
+Hammasini ajratish
+
+[Server error]
+Server xatosi
+
+[Service Unavailable]
+Xizmat ish faoliyatida emas
+
+[Session Progress]
+Seansning borishi
+
+[Settings]
+Sozlamalar
+
+[Shortcuts]
+Yorliqlar
+
+[Single Call Mode]
+Yagona qo'ng'iroq rejimi
+
+[SIP Header]
+SIP sarlavhasi
+
+[SIP Proxy]
+SIP proksi-serveri
+
+[SIP Server]
+SIP-server
+
+[Soft]
+Yumshoq
+
+[Softphone is not initialized. Check your settings.]
+Softphone ishga tushirilmagan. Sozlamalarni tekshiring.
+
+[Software Level Adjustment]
+Dastur darajasini sozlash
+
+[Sound Events]
+Ovozli voqealar
+
+[Source Port]
+Manba porti
+
+[Speaker]
+Karnay
+
+[Speaker Level]
+Karnay darajasi
+
+[Starred]
+Yulduzli
+
+[State]
+Davlat
+
+[STUN Server]
+STUN serveri
+
+[Thanks for testing the beta!]
+Beta-versiyani sinab ko'rganingiz uchun tashakkur!
+
+[The application crashed]
+Ilova ishdan chiqdi
+
+[The application may have been launched from an unsafe location. Please download the application from the official website.]
+Ilova xavfli joydan ishga tushirilgan bo'lishi mumkin. Iltimos, ilovani rasmiy veb-saytdan yuklab oling.
+
+[The final version is now available. Download it from our website.]
+Yakuniy versiyasi endi mavjud. Uni veb-saytimizdan yuklab oling.
+
+[The received data cannot be recognized]
+Qabul qilingan ma'lumotlarni tanib bo'lmaydi
+
+[The server returned an error code:]
+Server xato kodini qaytardi:
+
+[This application requires camera access for desktop apps to function properly.]
+Ushbu ilova ish stoli ilovalarining to'g'ri ishlashi uchun kameraga kirish huquqini talab qiladi.
+
+[This could be caused by driver issues, or other unexpected system problems.]
+Bunga drayver muammolari yoki boshqa kutilmagan tizim muammolari sabab bo'lishi mumkin.
+
+[This version is no longer supported]
+Bu versiya endi qo'llab-quvvatlanmaydi
+
+[This version is outdated]
+Bu versiya eskirgan
+
+[Time]
+вакт
+
+[To]
+Kimga
+
+[Toggle]
+Oʻchirish
+
+[Transfer]
+Transfer
+
+[Transfer Call to]
+Qo'ng'iroqni o'tkazish
+
+[Transport]
+Transport
+
+[Try the Lite version or update your graphics and camera drivers.]
+Lite versiyasini sinab ko'ring yoki grafika va kamera drayverlarini yangilang.
+
+[Trying]
+Urinmoqda
+
+[Type]
+Turi
+
+[Unable to connect to the remote server.]
+Masofaviy serverga ulanib bo'lmadi.
+
+[Unable to create media session]
+Media sessiyasi yaratib bo'lmadi
+
+[Unable to find default audio device]
+Hech qanday audio qurilma topilmadi
+
+[Unable to initialize network sockets.]
+Tarmoq rozetkalarini ishga tushirib bo'lmadi.
+
+[Unable to send the network request.]
+Tarmoq so'rovini yuborib bo'lmadi.
+
+[Unauthorized]
+Ruxsatsiz
+
+[Unavailable]
+Mavjud emas
+
+[unencrypted]
+shifrlanmagan
+
+[Unregister]
+Ro'yxatdan o'tish
+
+[Unsupported codecs, encryption methods, or other media parameters.]
+Qo'llab-quvvatlanmaydigan kodeklar, shifrlash usullari yoki boshqa media parametrlari.
+
+[Update Available]
+Yangilanish mavjud
+
+[Update now to stay secure and take advantage of the latest improvements.]
+Xavfsiz bo'lish va eng so'nggi yaxshilanishlardan foydalanish uchun hozir yangilang.
+
+[Updating to the latest version may resolve this issue.]
+Eng so'nggi versiyaga yangilash bu muammoni hal qilishi mumkin.
+
+[Use Delele key to disable selected codec]
+Tanlangan kodeklarni o'chirish uchun Delele tugmasidan foydalaning
+
+[Use Delele key to remove account]
+Hisobni o'chirish uchun Delele tugmasidan foydalaning
+
+[Use Space key to add account]
+Hisob qo'shish uchun bo'sh joy tugmasidan foydalaning
+
+[Use Space key to enable selected codec]
+Tanlangan kodeklarni yoqish uchun space tugmasidan foydalaning
+
+[Username]
+Foydalanuvchi logini
+
+[Video Bitrate]
+Video Bitreyt
+
+[Video Call]
+Video qo'ng'iroq
+
+[Video Codec]
+Video kodek
+
+[View Log File]
+Jurnal faylini ko'rish
+
+[Visit Website]
+Veb-saytga tashrif buyuring
+
+[Voicemail Number]
+Овозли хааабар номери
+
+[Weekly]
+Haftada
+
+[You already have an active call with this number.]
+Sizda allaqachon ushbu raqam bilan faol qo'ng'iroq bor.
+
+[You need to restart application for the changes to take effect.]
+O'zgartirishlar kuchga kirishi uchun ilovani qayta ishga tushirishingiz kerak.
+
+[Sign in to 4phone]
+4phone tizimiga kirish
+
+[2FA code]
+2FA kodi
+
+[2FA code or recovery code]
+2FA kodi yoki tiklash kodi
+
+[Extension]
+Ichki raqam
+
+[Enter your 4phone email and password]
+4phone shaxsiy kabinetidagi email va parolni kiriting
+
+[Enter email and password]
+Email va parolni kiriting
+
+[Checking your account...]
+Hisob tekshirilmoqda...
+
+[Enter the code from your authenticator app]
+Autentifikator ilovasidagi kodni kiriting
+
+[Enter verification code]
+Tasdiqlash kodini kiriting
+
+[Checking code...]
+Kod tekshirilmoqda...
+
+[Loading telephony settings...]
+Telefoniya sozlamalari olinmoqda...
+
+[Loading available extensions...]
+Mavjud ichki raqamlar olinmoqda...
+
+[No active extension is assigned to your user]
+Foydalanuvchiga faol ichki raqam biriktirilmagan
+
+[Applying telephony settings...]
+Telefoniya sozlamalari qo'llanmoqda...
+
+[Select an extension for this computer]
+Ushbu kompyuter uchun ichki raqamni tanlang
+
+[Select an extension]
+Ichki raqamni tanlang
+
+[No extension selected]
+Ichki raqam tanlanmagan
+
+[Sign in]
+Kirish
+
+[Please wait...]
+Kuting...
+
+[The server returned an invalid response]
+Server noto'g'ri javob qaytardi
+
+[The server did not return a 2FA challenge token]
+Server 2FA tekshiruv tokenini qaytarmadi
+
+[The server returned an invalid extension list]
+Server ichki raqamlarning noto'g'ri ro'yxatini qaytardi
+
+[The server returned an invalid SIP configuration]
+Server noto'g'ri SIP konfiguratsiyasini qaytardi
+
+[The SIP configuration is missing required fields]
+SIP konfiguratsiyasida majburiy maydonlar yo'q
+
+[Your 4phone session is not authorized]
+4phone seansi avtorizatsiyadan o'tmagan
+
+[The 4phone API must use HTTPS]
+4phone API HTTPS orqali ishlashi kerak
+
+[The 4phone API response is too large]
+4phone API javobi juda katta
+
+[The server returned an invalid authentication response]
+Server autentifikatsiya uchun noto'g'ri javob qaytardi
+
+[The server did not return authentication tokens]
+Server autentifikatsiya tokenlarini qaytarmadi
+
+[Invalid email, password, or verification code]
+Email, parol yoki tasdiqlash kodi noto'g'ri
+
+[Check the entered data and try again]
+Kiritilgan ma'lumotlarni tekshirib, qayta urinib ko'ring
+
+[Access to this extension is denied]
+Ushbu ichki raqamga kirish taqiqlangan
+
+[The selected extension is no longer available]
+Tanlangan ichki raqam boshqa mavjud emas
+
+[Too many attempts. Try again later]
+Urinishlar juda ko'p. Keyinroq qayta urinib ko'ring
+
+[4phone is temporarily unavailable. Try again later]
+4phone vaqtincha ishlamayapti. Keyinroq qayta urinib ko'ring
+
+[The 4phone API returned HTTP error %lu]
+4phone API HTTP %lu xatosini qaytardi
+
+[Could not connect to the 4phone API, error %lu]
+4phone API ga ulanib bo'lmadi, xato %lu
+
+[Could not connect to the 4phone API: %s]
+4phone API ga ulanib bo'lmadi: %s
+
+[Your 4phone session has ended]
+4phone seansi yakunlandi
+
+[Windows could not protect the SIP password. Settings were not saved]
+Windows SIP parolini himoyalay olmadi. Sozlamalar saqlanmadi
+
+[Could not save the 4phone sign-in state]
+4phone kirish holatini saqlab bo'lmadi
+
+[Could not save the local sign-out state]
+Mahalliy chiqish holatini saqlab bo'lmadi
+
+[Cannot save an empty 4phone token]
+Bo'sh 4phone tokenini saqlab bo'lmaydi
+
+[4phone token exceeds the Windows credential size limit]
+4phone tokeni Windows hisob ma'lumotlari hajmi limitidan oshadi
+
+[Could not save the 4phone session]
+4phone seansini saqlab bo'lmadi
+
+[Could not read the 4phone session]
+4phone seansini o'qib bo'lmadi
+
+[Saved 4phone session is corrupted]
+Saqlangan 4phone seansi buzilgan
+
+[Could not delete the 4phone session]
+4phone seansini o'chirib bo'lmadi
+
+[, error %lu]
+, xato %lu
+
+[Sign out from 4phone and remove telephony settings from this computer?]
+4phone tizimidan chiqib, ushbu kompyuterdagi telefoniya sozlamalari o'chirilsinmi?
+
+[Switch 4phone account...]
+4phone hisobini almashtirish...
+
+[Sign in to 4phone...]
+4phone tizimiga kirish...
+
+[Sign out from 4phone]
+4phone tizimidan chiqish
+
+[Automatic 4phone client updates are not configured yet]
+4phone klientining avtomatik yangilanishi hali sozlanmagan
+
+[4phone encountered an error. Diagnostic file saved to: %s]
+4phone da xato yuz berdi. Diagnostika fayli saqlandi: %s
+
+[Interface language]
+Interfeys tili
+
+[The interface language will change after restarting 4phone.]
+Interfeys tili 4phone qayta ishga tushirilgandan keyin o'zgaradi.
+
+[AA]
+AA
+
+[AC]
+AC
+
+[Allow access to the microphone in your antivirus settings.]
+Antivirus sozlamalarida mikrofonga kirishga ruxsat bering.
+
+[CONF]
+CONF
+
+[Contact with the same number already exists. Do you want to overwrite?]
+Bunday raqamli kontakt mavjud. Uni almashtirasizmi?
+
+[DND]
+DND
+
+[Delete contact]
+Kontaktni o'chirish
+
+[Diversion]
+Yo'naltirish
+
+[FWD]
+FWD
+
+[Final]
+Yakuniy
+
+[Fix microphone permission in the Windows settings (Windows Settings => Privacy => Microphone).]
+Windows sozlamalarida mikrofonga ruxsat bering (Sozlamalar => Maxfiylik => Mikrofon).
+
+[In-band]
+Audio oqimida
+
+[Info]
+Ma'lumot
+
+[REC]
+REC
+
+[RFC2833]
+RFC2833
+
+[SIP-INFO]
+SIP-INFO
+
+[Speakers and microphone both are required. To make calls you must have input and output sound device in your system.]
+Qo'ng'iroqlar uchun karnay va mikrofon kerak. Tizimda ovoz kiritish va chiqarish qurilmalari mavjudligini tekshiring.
+
+[Symmetric NAT detected!]
+Simmetrik NAT aniqlandi!
+
+[Transfer Call To]
+Qo'ng'iroqni o'tkazish
+
+[Send]
+Yuborish

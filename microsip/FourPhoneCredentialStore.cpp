@@ -9,6 +9,7 @@
 #include "FourPhoneCredentialStore.h"
 
 #include "define.h"
+#include "langpack.h"
 
 #include <wincred.h>
 
@@ -20,14 +21,15 @@ bool CFourPhoneCredentialStore::SaveRefreshToken(
 {
 	error.Empty();
 	if (refreshToken.IsEmpty()) {
-		error = _T("Нельзя сохранить пустой токен 4phone");
+		error = Translate(_T("Cannot save an empty 4phone token"));
 		return false;
 	}
 
 	const DWORD blobSize =
 		static_cast<DWORD>(refreshToken.GetLength() * sizeof(TCHAR));
 	if (blobSize > CRED_MAX_CREDENTIAL_BLOB_SIZE) {
-		error = _T("Токен 4phone превышает лимит хранилища Windows");
+		error = Translate(_T(
+			"4phone token exceeds the Windows credential size limit"));
 		return false;
 	}
 
@@ -44,7 +46,7 @@ bool CFourPhoneCredentialStore::SaveRefreshToken(
 
 	if (!CredWrite(&credential, 0)) {
 		error = FormatWindowsError(
-			_T("Не удалось сохранить сеанс 4phone"),
+			Translate(_T("Could not save the 4phone session")),
 			GetLastError());
 		return false;
 	}
@@ -69,7 +71,7 @@ bool CFourPhoneCredentialStore::LoadRefreshToken(
 			return false;
 		}
 		error = FormatWindowsError(
-			_T("Не удалось прочитать сеанс 4phone"),
+			Translate(_T("Could not read the 4phone session")),
 			errorCode);
 		return false;
 	}
@@ -91,7 +93,7 @@ bool CFourPhoneCredentialStore::LoadRefreshToken(
 	CredFree(credential);
 
 	if (refreshToken.IsEmpty()) {
-		error = _T("Сохраненный сеанс 4phone поврежден");
+		error = Translate(_T("Saved 4phone session is corrupted"));
 		return false;
 	}
 	return true;
@@ -112,7 +114,7 @@ bool CFourPhoneCredentialStore::DeleteRefreshToken(CString& error)
 		return true;
 	}
 	error = FormatWindowsError(
-		_T("Не удалось удалить сеанс 4phone"),
+		Translate(_T("Could not delete the 4phone session")),
 		errorCode);
 	return false;
 }
@@ -140,7 +142,7 @@ CString CFourPhoneCredentialStore::FormatWindowsError(
 		message.AppendFormat(_T(": %s"), details.GetString());
 	}
 	else {
-		message.AppendFormat(_T(", код %lu"), errorCode);
+		message.AppendFormat(Translate(_T(", error %lu")), errorCode);
 	}
 	if (buffer) {
 		LocalFree(buffer);

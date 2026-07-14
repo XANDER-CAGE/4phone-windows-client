@@ -148,6 +148,44 @@ namespace
         LocalFree(output.pbData);
         return kDpapiPrefix + MSIP::Bin2String(&encrypted);
     }
+
+    CString DetectInterfaceLanguage()
+    {
+        ULONG languageCount = 0;
+        ULONG bufferLength = 0;
+        if (GetUserPreferredUILanguages(
+            MUI_LANGUAGE_NAME,
+            &languageCount,
+            NULL,
+            &bufferLength) &&
+            bufferLength > 1) {
+            std::vector<wchar_t> languages(bufferLength);
+            if (GetUserPreferredUILanguages(
+                MUI_LANGUAGE_NAME,
+                &languageCount,
+                languages.data(),
+                &bufferLength)) {
+                CString languageName(languages.data());
+                languageName.MakeLower();
+                if (languageName.Left(2) == _T("ru")) {
+                    return _T("ru");
+                }
+                if (languageName.Left(2) == _T("uz")) {
+                    return _T("uz");
+                }
+            }
+        }
+
+        const WORD primaryLanguage =
+            PRIMARYLANGID(GetUserDefaultUILanguage());
+        if (primaryLanguage == LANG_RUSSIAN) {
+            return _T("ru");
+        }
+        if (primaryLanguage == LANG_UZBEK) {
+            return _T("uz");
+        }
+        return _T("en");
+    }
 }
 
 bool IniDecrypt(CString& str)
@@ -668,6 +706,15 @@ void AccountSettings::Init()
     ptr = updatesInterval.GetBuffer(255);
     GetPrivateProfileString(section, _T("updatesInterval"), NULL, ptr, 256, iniFile);
     updatesInterval.ReleaseBuffer();
+    ptr = language.GetBuffer(15);
+    GetPrivateProfileString(section, _T("language"), NULL, ptr, 16, iniFile);
+    language.ReleaseBuffer();
+    language.MakeLower();
+    if (language != _T("ru") &&
+        language != _T("uz") &&
+        language != _T("en")) {
+        language = DetectInterfaceLanguage();
+    }
     ptr = str.GetBuffer(255);
     GetPrivateProfileString(section, _T("checkUpdatesTime"), NULL, ptr, 256, iniFile);
     str.ReleaseBuffer();
@@ -1295,6 +1342,7 @@ void AccountSettings::SettingsSave()
     WritePrivateProfileString(section, _T("multiMonitor"), multiMonitor ? _T("1") : _T("0"), iniFile);
     WritePrivateProfileString(section, _T("networkChanges"), networkChanges ? _T("1") : _T("0"), iniFile);
     WritePrivateProfileString(section, _T("updatesInterval"), updatesInterval, iniFile);
+    WritePrivateProfileString(section, _T("language"), language, iniFile);
     str.Format(_T("%d"), checkUpdatesTime);
     WritePrivateProfileString(section, _T("checkUpdatesTime"), str, iniFile);
 

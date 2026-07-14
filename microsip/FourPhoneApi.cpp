@@ -10,6 +10,7 @@
 
 #include "define.h"
 #include "json.h"
+#include "langpack.h"
 #include "MSIP.h"
 
 #include <winhttp.h>
@@ -156,7 +157,7 @@ bool CFourPhoneApi::Login(
 
 	Json::Value root;
 	if (!ParseJson(httpResponse.body, root)) {
-		lastError = _T("Сервер вернул некорректный ответ");
+		lastError = Translate(_T("The server returned an invalid response"));
 		return false;
 	}
 
@@ -166,7 +167,8 @@ bool CFourPhoneApi::Login(
 	if (response.requiresTwoFactor) {
 		response.challengeToken = JsonString(root["challengeToken"]);
 		if (response.challengeToken.IsEmpty()) {
-			lastError = _T("Сервер не вернул токен проверки 2FA");
+			lastError = Translate(
+				_T("The server did not return a 2FA challenge token"));
 			return false;
 		}
 		return true;
@@ -276,7 +278,8 @@ bool CFourPhoneApi::GetExtensions(
 
 	Json::Value root;
 	if (!ParseJson(response.body, root) || !root.isArray()) {
-		lastError = _T("Сервер вернул некорректный список добавочных");
+		lastError = Translate(
+			_T("The server returned an invalid extension list"));
 		return false;
 	}
 
@@ -318,7 +321,8 @@ bool CFourPhoneApi::GetSipConfig(
 
 	Json::Value root;
 	if (!ParseJson(response.body, root) || !root.isObject()) {
-		lastError = _T("Сервер вернул некорректную SIP-конфигурацию");
+		lastError = Translate(
+			_T("The server returned an invalid SIP configuration"));
 		return false;
 	}
 
@@ -345,7 +349,8 @@ bool CFourPhoneApi::GetSipConfig(
 		config.sipServer.IsEmpty() ||
 		config.extension.IsEmpty() ||
 		config.password.IsEmpty()) {
-		lastError = _T("В SIP-конфигурации отсутствуют обязательные поля");
+		lastError = Translate(
+			_T("The SIP configuration is missing required fields"));
 		return false;
 	}
 	return true;
@@ -381,7 +386,8 @@ bool CFourPhoneApi::Request(
 	response = HttpResponse();
 
 	if (authenticated && accessToken.IsEmpty()) {
-		lastError = _T("Сеанс 4phone не авторизован");
+		lastError = Translate(
+			_T("Your 4phone session is not authorized"));
 		return false;
 	}
 
@@ -407,7 +413,7 @@ bool CFourPhoneApi::Request(
 		return false;
 	}
 	if (components.nScheme != INTERNET_SCHEME_HTTPS) {
-		lastError = _T("API 4phone должен использовать HTTPS");
+		lastError = Translate(_T("The 4phone API must use HTTPS"));
 		return false;
 	}
 
@@ -543,7 +549,7 @@ bool CFourPhoneApi::Request(
 		}
 		if (totalSize > kMaxResponseSize ||
 			available > kMaxResponseSize - totalSize) {
-			lastError = _T("Ответ API 4phone слишком большой");
+			lastError = Translate(_T("The 4phone API response is too large"));
 			return false;
 		}
 
@@ -578,13 +584,15 @@ bool CFourPhoneApi::ParseTokens(
 {
 	Json::Value root;
 	if (!ParseJson(body, root)) {
-		lastError = _T("Сервер вернул некорректный ответ авторизации");
+		lastError = Translate(
+			_T("The server returned an invalid authentication response"));
 		return false;
 	}
 	tokens.accessToken = JsonString(root["accessToken"]);
 	tokens.refreshToken = JsonString(root["refreshToken"]);
 	if (!tokens.IsValid()) {
-		lastError = _T("Сервер не вернул токены авторизации");
+		lastError = Translate(
+			_T("The server did not return authentication tokens"));
 		return false;
 	}
 	return true;
@@ -607,25 +615,34 @@ bool CFourPhoneApi::ParseError(const HttpResponse& response)
 		}
 	}
 
-	if (response.statusCode == 401) {
-		lastError = message.IsEmpty()
-			? _T("Неверный email, пароль или код подтверждения")
-			: message;
+	if (response.statusCode == 400) {
+		lastError = Translate(
+			_T("Check the entered data and try again"));
+	}
+	else if (response.statusCode == 401) {
+		lastError = Translate(_T(
+			"Invalid email, password, or verification code"));
 	}
 	else if (response.statusCode == 403) {
-		lastError = message.IsEmpty()
-			? _T("Доступ к добавочному запрещен")
-			: message;
+		lastError = Translate(_T("Access to this extension is denied"));
+	}
+	else if (response.statusCode == 404) {
+		lastError = Translate(
+			_T("The selected extension is no longer available"));
 	}
 	else if (response.statusCode == 429) {
-		lastError = _T("Слишком много попыток. Повторите позже");
+		lastError = Translate(_T("Too many attempts. Try again later"));
+	}
+	else if (response.statusCode >= 500) {
+		lastError = Translate(_T(
+			"4phone is temporarily unavailable. Try again later"));
 	}
 	else if (!message.IsEmpty()) {
 		lastError = message;
 	}
 	else {
 		lastError.Format(
-			_T("API 4phone вернул ошибку HTTP %lu"),
+			Translate(_T("The 4phone API returned HTTP error %lu")),
 			response.statusCode);
 	}
 	return false;
@@ -656,12 +673,13 @@ void CFourPhoneApi::SetTransportError(DWORD errorCode)
 
 	if (systemMessage.IsEmpty()) {
 		lastError.Format(
-			_T("Не удалось подключиться к API 4phone, код %lu"),
+			Translate(_T(
+				"Could not connect to the 4phone API, error %lu")),
 			errorCode);
 	}
 	else {
 		lastError.Format(
-			_T("Не удалось подключиться к API 4phone: %s"),
+			Translate(_T("Could not connect to the 4phone API: %s")),
 			systemMessage.GetString());
 	}
 	lastStatusCode = 0;

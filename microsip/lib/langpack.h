@@ -29,7 +29,7 @@ struct LangPackStruct {
 extern LangPackStruct langPack;
 
 int LoadLangPack(const TCHAR *szLangPack);
-void LoadLangPackModule(void);
+int LoadLangPackModule(const TCHAR *language);
 void UnloadLangPackModule(void);
 int TranslateDialog(HWND hwndDlg);
 void TranslateMenu(HMENU hmenu);

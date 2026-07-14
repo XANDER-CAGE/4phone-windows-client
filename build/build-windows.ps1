@@ -212,4 +212,18 @@ finally {
     $env:CL = $oldCl
 }
 
-Write-Host "Сборка 4phone завершена: $MicroSipRoot\$Configuration\4phone.exe"
+$outputDirectory = Join-Path $MicroSipRoot $Configuration
+$requiredOutputs = @(
+    "4phone.exe",
+    "langpack_russian.txt",
+    "langpack_uzbek.txt"
+)
+foreach ($requiredOutput in $requiredOutputs) {
+    $outputPath = Join-Path $outputDirectory $requiredOutput
+    if (-not (Test-Path $outputPath -PathType Leaf)) {
+        throw "Сборка не создала обязательный файл: $outputPath"
+    }
+}
+
+$executablePath = Join-Path $outputDirectory "4phone.exe"
+Write-Host "Сборка 4phone завершена: $executablePath"

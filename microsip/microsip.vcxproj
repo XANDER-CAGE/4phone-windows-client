@@ -383,6 +383,16 @@
   <ItemGroup>
     <ResourceCompile Include="main.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <FourPhoneLanguagePack Include="langpacks\langpack_russian.txt" />
+    <FourPhoneLanguagePack Include="langpacks\langpack_uzbek.txt" />
+  </ItemGroup>
+  <Target Name="CopyFourPhoneLanguagePacks" AfterTargets="Build">
+    <Copy
+      SourceFiles="@(FourPhoneLanguagePack)"
+      DestinationFolder="$(TargetDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
   <ProjectExtensions>

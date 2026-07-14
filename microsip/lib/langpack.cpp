@@ -353,25 +353,39 @@ void TranslateMenu( HMENU hmenu )
 }
 
 
-void LoadLangPackModule(void)
+int LoadLangPackModule(const TCHAR *language)
 {
-	HANDLE hFind;
-	TCHAR szSearch[MAX_PATH], *str2, szLangPack[MAX_PATH];
-	WIN32_FIND_DATA fd;
-	langPack.rtl = 0;
-	GetModuleFileName(GetModuleHandle(NULL),szSearch,MAX_PATH);
-	str2 = _tcsrchr(szSearch, '\\');
-	if (str2) *str2 = 0; else str2 = szSearch;
-	_tcscat(szSearch, _T("\\langpack_*.txt"));
-	hFind = FindFirstFile(szSearch, &fd);
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		FindClose(hFind);
+	UnloadLangPackModule();
 
-		_tcscpy(str2 + 1, fd.cFileName);
-		_tcscpy(szLangPack, szSearch);
-		LoadLangPack(szLangPack);
+	if (language == NULL || language[0] == 0 ||
+		_tcsicmp(language, _T("en")) == 0) {
+		return 0;
 	}
+
+	const TCHAR *filename = NULL;
+	if (_tcsicmp(language, _T("ru")) == 0) {
+		filename = _T("langpack_russian.txt");
+	}
+	else if (_tcsicmp(language, _T("uz")) == 0) {
+		filename = _T("langpack_uzbek.txt");
+	}
+	else {
+		return 1;
+	}
+
+	TCHAR path[MAX_PATH];
+	if (!GetModuleFileName(GetModuleHandle(NULL), path, SIZEOF(path))) {
+		return 2;
+	}
+	TCHAR *separator = _tcsrchr(path, '\\');
+	if (separator == NULL) {
+		return 2;
+	}
+	separator[1] = 0;
+	if (FAILED(StringCchCat(path, SIZEOF(path), filename))) {
+		return 2;
+	}
+	return LoadLangPack(path);
 }
 
 void UnloadLangPackModule(void)

@@ -193,7 +193,9 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS *ExceptionInfo)
     if (!restart) {
         CString message;
         message.Format(
-            _T("В 4phone произошла ошибка. Диагностический файл сохранен: %s"),
+            Translate(_T(
+                "4phone encountered an error. "
+                "Diagnostic file saved to: %s")),
             filename.GetString());
         AfxMessageBox(message, MB_ICONERROR);
     }
@@ -245,6 +247,7 @@ BOOL CmicrosipApp::InitInstance()
 {
 	CString strCommandLine = theApp.m_lpCmdLine;
 	accountSettings.Init();
+	LoadLangPackModule(accountSettings.language);
 	SetUnhandledExceptionFilter(ExceptionFilter);
 	MsipEnumWindowsProcData data;
 	data.hInst = AfxGetInstanceHandle();

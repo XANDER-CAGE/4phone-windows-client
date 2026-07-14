@@ -45,6 +45,7 @@ _T("Message"),
 SettingsDlg::SettingsDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(SettingsDlg::IDD, pParent)
 {
+	initialLanguage = accountSettings.language;
     if (!Create(IDD, pParent)) {
         AfxMessageBox(_T("Failed to create settings window on your system"));
         exit(0);
@@ -357,31 +358,18 @@ BOOL SettingsDlg::OnInitDialog()
 	((CButton*)GetDlgItem(IDC_SETTINGS_DISABLE_NAME_LOOKUP))->SetCheck(accountSettings.disableNameLookup);
 	((CButton*)GetDlgItem(IDC_SETTINGS_ENABLE_LOCAL))->SetCheck(accountSettings.enableLocalAccount);
 
-	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL);
-	combobox->AddString(Translate(_T("Daily")));
-	combobox->AddString(Translate(_T("Weekly")));
-	combobox->AddString(Translate(_T("Monthly")));
-	combobox->AddString(Translate(_T("Quarterly")));
-	combobox->AddString(Translate(_T("Never")));
-	if (accountSettings.updatesInterval == _T("daily"))
-	{
+	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE);
+	combobox->AddString(_T("Русский"));
+	combobox->AddString(_T("O'zbekcha"));
+	combobox->AddString(_T("English"));
+	if (accountSettings.language == _T("ru")) {
 		i = 0;
 	}
-	else if (accountSettings.updatesInterval == _T("monthly"))
-	{
-		i = 2;
-	}
-	else if (accountSettings.updatesInterval == _T("quarterly"))
-	{
-		i = 3;
-	}
-	else if (accountSettings.updatesInterval == _T("never"))
-	{
-		i = 4;
-	}
-	else
-	{
+	else if (accountSettings.language == _T("uz")) {
 		i = 1;
+	}
+	else {
+		i = 2;
 	}
 	combobox->SetCurSel(i);
 	CRegKey regKey;
@@ -629,24 +617,19 @@ LRESULT SettingsDlg::OnUpdateSettings(WPARAM wParam, LPARAM lParam)
 	accountSettings.recordingButton = ((CButton*)GetDlgItem(IDC_SETTINGS_RECORDING_BUTTON))->GetCheck();
 	accountSettings.enableLocalAccount = ((CButton*)GetDlgItem(IDC_SETTINGS_ENABLE_LOCAL))->GetCheck();
 
-	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL);
+	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE);
 	i = combobox->GetCurSel();
-	switch (i) {
-	case 0:
-		accountSettings.updatesInterval = _T("daily");
-		break;
-	case 2:
-		accountSettings.updatesInterval = _T("monthly");
-		break;
-	case 3:
-		accountSettings.updatesInterval = _T("quarterly");
-		break;
-	case 4:
-		accountSettings.updatesInterval = _T("never");
-		break;
-	default:
-		accountSettings.updatesInterval = _T("");
+	if (i == 0) {
+		accountSettings.language = _T("ru");
 	}
+	else if (i == 1) {
+		accountSettings.language = _T("uz");
+	}
+	else {
+		accountSettings.language = _T("en");
+	}
+	const bool languageChanged =
+		accountSettings.language != initialLanguage;
 
 	msip_startup_set(((CButton*)GetDlgItem(IDC_SETTINGS_STARTUP))->GetCheck());
 
@@ -665,6 +648,12 @@ LRESULT SettingsDlg::OnUpdateSettings(WPARAM wParam, LPARAM lParam)
 	mainDlg->PJCreate();
 	mainDlg->OnAccountChanged();
 	mainDlg->PJAccountAdd();
+	if (languageChanged) {
+		AfxMessageBox(
+			Translate(_T(
+				"The interface language will change after restarting 4phone.")),
+			MB_OK | MB_ICONINFORMATION);
+	}
 	OnClose();
 	return 0;
 }

@@ -38,6 +38,7 @@ protected:
 	CStringArray autoAnswerValues;
 	CStringArray forwardingValues;
 	CStringArray denyIncomingValues;
+	CString initialLanguage;
 
 	virtual BOOL OnInitDialog();
 	afx_msg void OnDestroy();

@@ -1824,8 +1824,6 @@ L16/48000/2;LPCM 48 kHz Stereo");
 	}
 	_tsetlocale(LC_ALL, szLocale); // e.g. szLocale = "English_United States.1252"
 
-	LoadLangPackModule();
-
 	Create(IDD, pParent);
 }
 
@@ -2305,7 +2303,9 @@ void CmainDlg::OnFourPhoneLogin()
 void CmainDlg::OnFourPhoneLogout()
 {
 	if (AfxMessageBox(
-		_T("Выйти из 4phone и удалить настройки телефонии на этом компьютере?"),
+		Translate(_T(
+			"Sign out from 4phone and remove telephony settings "
+			"from this computer?")),
 		MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES) {
 		return;
 	}
@@ -2459,13 +2459,13 @@ void CmainDlg::MainPopupMenu(bool isMenuButton)
 		MF_STRING,
 		ID_4PHONE_LOGIN,
 		accountSettings.accountId
-			? _T("Сменить учетную запись 4phone...")
-			: _T("Войти в 4phone..."));
+			? Translate(_T("Switch 4phone account..."))
+			: Translate(_T("Sign in to 4phone...")));
 	if (accountSettings.accountId) {
 		tracker->AppendMenu(
 			MF_STRING,
 			ID_4PHONE_LOGOUT,
-			_T("Выйти из 4phone"));
+			Translate(_T("Sign out from 4phone")));
 	}
 	tracker->AppendMenu(MF_SEPARATOR);
 	str = Translate(_T("Settings"));
@@ -5486,7 +5486,8 @@ void CmainDlg::CheckUpdates()
 	accountSettings.updatesInterval = _T("never");
 	if (updateCheckerShow) {
 		AfxMessageBox(
-			_T("Автоматическое обновление клиента 4phone пока не настроено"),
+			Translate(_T(
+				"Automatic 4phone client updates are not configured yet")),
 			MB_OK | MB_ICONINFORMATION);
 		updateCheckerShow = false;
 	}
