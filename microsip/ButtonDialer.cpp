@@ -20,6 +20,7 @@
 #include "ButtonDialer.h"
 #include "Strsafe.h"
 #include "const.h"
+#include "FourPhoneTheme.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CButtonDialer
@@ -73,7 +74,9 @@ void CButtonDialer::PreSubclassWindow()
 	else {
 		dpiY = 96;
 	}
-	StringCchCopy(lf.lfFaceName, LF_FACESIZE, _T("Microsoft Sans Serif"));
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, _T("Segoe UI"));
+	lf.lfWeight = FW_SEMIBOLD;
+	lf.lfQuality = CLEARTYPE_QUALITY;
 	m_FontLetters.CreateFontIndirect(&lf);
 
 	DWORD dwStyle = ::GetClassLong(m_hWnd, GCL_STYLE);
@@ -112,78 +115,90 @@ void CButtonDialer::OnMouseMove(UINT nFlags, CPoint point)
 void CButtonDialer::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
 	CDC dc;
-	dc.Attach(lpDrawItemStruct->hDC);		//Get device context object
-	CRect rt;
-	rt = lpDrawItemStruct->rcItem;		//Get button rect
-	dc.FillSolidRect(rt, dc.GetBkColor());
+	dc.Attach(lpDrawItemStruct->hDC);
+	CRect rt(lpDrawItemStruct->rcItem);
+	dc.FillSolidRect(rt, FourPhoneTheme::Canvas());
 	dc.SetBkMode(TRANSPARENT);
 
-	CRect rtl = rt;
-	UINT state = lpDrawItemStruct->itemState;	//Get state of the button
-
-	if (!m_hTheme) {
-		UINT uStyle = DFCS_BUTTONPUSH;
-		if ((state & ODS_SELECTED)) {
-			uStyle |= DFCS_PUSHED;
-			rtl.left += 1;
-			rtl.top += 1;
-		}
-		dc.DrawFrameControl(rt, DFC_BUTTON, uStyle);
+	const UINT state = lpDrawItemStruct->itemState;
+	const bool pressed = (state & ODS_SELECTED) != 0;
+	const bool disabled = (state & ODS_DISABLED) != 0;
+	const bool hovered = GetCapture() == this;
+	COLORREF background = FourPhoneTheme::White();
+	COLORREF border = FourPhoneTheme::Line();
+	if (pressed) {
+		background = FourPhoneTheme::BrandSurface();
+		border = FourPhoneTheme::Brand();
 	}
-	else {
-		UINT uStyleTheme = RBS_NORMAL;
-		if ((state & ODS_SELECTED)) {
-			uStyleTheme = PBS_PRESSED;
-		}
-		else if (GetCapture() == this) {
-			uStyleTheme = PBS_HOT;
-		}
-		DrawThemeBackground(m_hTheme, dc.m_hDC,
-			BP_PUSHBUTTON, uStyleTheme,
-			rt, NULL);
+	else if (hovered) {
+		background = RGB(248, 252, 250);
+		border = RGB(183, 217, 202);
+	}
+	if (disabled) {
+		background = RGB(241, 243, 244);
+		border = FourPhoneTheme::Line();
 	}
 
 	CString strTemp;
-	GetWindowText(strTemp);		// Get the caption which have been set
+	GetWindowText(strTemp);
 
-	int x12 = MulDiv(12, dpiY, 96);
-	int x14 = MulDiv(14, dpiY, 96);
-	int x4 = MulDiv(4, dpiY, 96);
+	CRect shape(rt);
+	shape.DeflateRect(
+		FourPhoneTheme::Scale(GetSafeHwnd(), 3),
+		FourPhoneTheme::Scale(GetSafeHwnd(), 2));
+	CPen borderPen(PS_SOLID, 1, border);
+	CBrush backgroundBrush(background);
+	CPen* oldPen = dc.SelectObject(&borderPen);
+	CBrush* oldBrush = dc.SelectObject(&backgroundBrush);
+	const int radius = FourPhoneTheme::Scale(GetSafeHwnd(), 10);
+	dc.RoundRect(shape, CPoint(radius, radius));
+	dc.SelectObject(oldBrush);
+	dc.SelectObject(oldPen);
 
 	CString letters;
-	COLORREF crOldColor;
+	const COLORREF mainText = disabled
+		? FourPhoneTheme::Muted()
+		: FourPhoneTheme::Ink();
+	const COLORREF oldColor = dc.SetTextColor(mainText);
 	if (!forceNumeric && m_map.Lookup(strTemp, letters)) {
-		rtl.left += x14;
-		dc.DrawText(strTemp, rtl, DT_LEFT | DT_VCENTER | DT_SINGLELINE);		// Draw out the caption
+		CRect digitBounds(shape);
+		if (!letters.IsEmpty()) {
+			digitBounds.bottom -= FourPhoneTheme::Scale(
+				GetSafeHwnd(),
+				5);
+		}
+		dc.DrawText(
+			strTemp,
+			digitBounds,
+			DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+
 		HFONT hOldFont = (HFONT)SelectObject(dc.m_hDC, m_FontLetters);
-		// Do your text drawing
-		rtl.left += x12;
-		rtl.right -= x4;
-		crOldColor = dc.SetTextColor(RGB(127, 127, 127));
-		dc.DrawText(letters, rtl, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		dc.SetTextColor(crOldColor);
-		// Always select the old font back into the DC
+		CRect letterBounds(shape);
+		letterBounds.top = shape.CenterPoint().y +
+			FourPhoneTheme::Scale(GetSafeHwnd(), 5);
+		dc.SetTextColor(FourPhoneTheme::Muted());
+		dc.DrawText(
+			letters,
+			letterBounds,
+			DT_CENTER | DT_TOP | DT_SINGLELINE | DT_NOPREFIX);
 		SelectObject(dc.m_hDC, hOldFont);
 	}
 	else {
-		if (forceNumeric) {
-			crOldColor = dc.SetTextColor(RGB(80, 80, 80));
-		}
-		else {
-			crOldColor = dc.SetTextColor(RGB(127, 127, 127));
-		}
-		dc.DrawText(strTemp, rt, DT_CENTER | DT_VCENTER | DT_SINGLELINE);		// Draw out the caption
-		dc.SetTextColor(crOldColor);
+		dc.SetTextColor(
+			forceNumeric
+				? mainText
+				: FourPhoneTheme::Muted());
+		dc.DrawText(
+			strTemp,
+			shape,
+			DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
 	}
+	dc.SetTextColor(oldColor);
 
-	if ((state & ODS_FOCUS))       // If the button is focused
-	{
-		int iChange = 3;
-		rt.top += iChange;
-		rt.left += iChange;
-		rt.right -= iChange;
-		rt.bottom -= iChange;
-		dc.DrawFocusRect(rt);
+	if ((state & ODS_FOCUS) != 0) {
+		CRect focus(shape);
+		focus.DeflateRect(3, 3);
+		dc.DrawFocusRect(focus);
 	}
 	dc.Detach();
 }

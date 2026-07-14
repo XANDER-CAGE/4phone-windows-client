@@ -34,6 +34,7 @@ CFourPhoneLoginDlg::CFourPhoneLoginDlg(CWnd* parent)
 	: CDialog(IDD, parent)
 	, step(StepCredentials)
 	, requestInProgress(false)
+	, statusIsError(false)
 {
 }
 
@@ -57,9 +58,18 @@ CString CFourPhoneLoginDlg::GetSelectedExtensionId() const
 void CFourPhoneLoginDlg::DoDataExchange(CDataExchange* dataExchange)
 {
 	CDialog::DoDataExchange(dataExchange);
+	DDX_Control(dataExchange, IDOK, signInButton);
+	DDX_Control(dataExchange, IDCANCEL, cancelButton);
+	DDX_Control(dataExchange, IDC_4PHONE_CLOSE, closeButton);
 }
 
 BEGIN_MESSAGE_MAP(CFourPhoneLoginDlg, CDialog)
+	ON_WM_PAINT()
+	ON_WM_ERASEBKGND()
+	ON_WM_CTLCOLOR()
+	ON_WM_NCCALCSIZE()
+	ON_WM_NCHITTEST()
+	ON_BN_CLICKED(IDC_4PHONE_CLOSE, OnCloseButton)
 END_MESSAGE_MAP()
 
 BOOL CFourPhoneLoginDlg::OnInitDialog()
@@ -67,8 +77,28 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 
 	SetWindowText(_T("4phone"));
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::CreateFont(this, uiFont, 9);
+	FourPhoneTheme::CreateFont(this, headingFont, 17, FW_SEMIBOLD);
+	FourPhoneTheme::CreateFont(this, eyebrowFont, 8, FW_BOLD);
+	FourPhoneTheme::ApplyFontToChildren(this, &uiFont);
+	FourPhoneTheme::PrepareControls(this);
+	if (whiteBrush.GetSafeHandle() == NULL) {
+		whiteBrush.CreateSolidBrush(FourPhoneTheme::White());
+	}
+	GetDlgItem(IDC_4PHONE_HEADING)->SetFont(&headingFont);
+	GetDlgItem(IDC_4PHONE_EYEBROW)->SetFont(&eyebrowFont);
+
+	signInButton.SetVariant(CFourPhoneButton::Primary);
+	signInButton.SetGlyph(CFourPhoneButton::GlyphArrowRight);
+	cancelButton.SetVariant(CFourPhoneButton::Secondary);
+	closeButton.SetVariant(CFourPhoneButton::CaptionClose);
+	closeButton.SetGlyph(CFourPhoneButton::GlyphClose);
+	closeButton.SetWindowText(Translate(_T("Close")));
 	GetDlgItem(IDC_4PHONE_HEADING)->SetWindowText(
 		Translate(_T("Sign in to 4phone")));
+	GetDlgItem(IDC_4PHONE_EYEBROW)->SetWindowText(
+		Translate(_T("Secure cloud telephony")));
 	GetDlgItem(IDC_4PHONE_EMAIL_LABEL)->SetWindowText(_T("Email"));
 	GetDlgItem(IDC_4PHONE_PASSWORD_LABEL)->SetWindowText(
 		Translate(_T("Password")));
@@ -96,6 +126,117 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 		return FALSE;
 	}
 	return TRUE;
+}
+
+void CFourPhoneLoginDlg::OnPaint()
+{
+	CPaintDC dc(this);
+	CRect client;
+	GetClientRect(client);
+	dc.FillSolidRect(client, FourPhoneTheme::White());
+
+	CRect top(client);
+	CRect topUnits(0, 0, 0, 43);
+	MapDialogRect(topUnits);
+	top.bottom = topUnits.bottom;
+	dc.FillSolidRect(top, RGB(248, 250, 249));
+
+	CRect logoUnits(28, 14, 126, 37);
+	MapDialogRect(logoUnits);
+	FourPhoneTheme::DrawBrandLogo(dc, logoUnits);
+
+	CPen divider(PS_SOLID, 1, FourPhoneTheme::Line());
+	CPen* oldPen = dc.SelectObject(&divider);
+	dc.MoveTo(top.left, top.bottom - 1);
+	dc.LineTo(top.right, top.bottom - 1);
+	dc.SelectObject(oldPen);
+
+	CRect accentUnits(22, 48, 24, 82);
+	MapDialogRect(accentUnits);
+	dc.FillSolidRect(accentUnits, FourPhoneTheme::Brand());
+}
+
+BOOL CFourPhoneLoginDlg::OnEraseBkgnd(CDC*)
+{
+	return TRUE;
+}
+
+HBRUSH CFourPhoneLoginDlg::OnCtlColor(
+	CDC* dc,
+	CWnd* window,
+	UINT controlColor)
+{
+	HBRUSH brush = CDialog::OnCtlColor(
+		dc,
+		window,
+		controlColor);
+	if (dc == NULL || window == NULL) {
+		return brush;
+	}
+
+	if (controlColor == CTLCOLOR_EDIT ||
+		controlColor == CTLCOLOR_LISTBOX) {
+		dc->SetTextColor(FourPhoneTheme::Ink());
+		dc->SetBkColor(FourPhoneTheme::White());
+		return static_cast<HBRUSH>(whiteBrush.GetSafeHandle());
+	}
+
+	if (controlColor == CTLCOLOR_STATIC ||
+		controlColor == CTLCOLOR_BTN ||
+		controlColor == CTLCOLOR_DLG) {
+		const int id = window->GetDlgCtrlID();
+		if (id == IDC_4PHONE_HEADING) {
+			dc->SetTextColor(FourPhoneTheme::Ink());
+		}
+		else if (id == IDC_4PHONE_EYEBROW) {
+			dc->SetTextColor(FourPhoneTheme::BrandDark());
+		}
+		else if (id == IDC_4PHONE_STATUS) {
+			dc->SetTextColor(
+				statusIsError
+					? FourPhoneTheme::Danger()
+					: FourPhoneTheme::Muted());
+		}
+		else {
+			dc->SetTextColor(FourPhoneTheme::InkSoft());
+		}
+		dc->SetBkMode(TRANSPARENT);
+		return static_cast<HBRUSH>(whiteBrush.GetSafeHandle());
+	}
+	return brush;
+}
+
+void CFourPhoneLoginDlg::OnNcCalcSize(
+	BOOL calculateValidRects,
+	NCCALCSIZE_PARAMS*)
+{
+	if (!calculateValidRects) {
+		return;
+	}
+}
+
+LRESULT CFourPhoneLoginDlg::OnNcHitTest(CPoint point)
+{
+	CPoint local(point);
+	ScreenToClient(&local);
+	CRect headerUnits(0, 0, 0, 43);
+	MapDialogRect(headerUnits);
+	if (local.y >= 0 && local.y < headerUnits.bottom) {
+		CRect closeBounds;
+		closeButton.GetWindowRect(closeBounds);
+		ScreenToClient(closeBounds);
+		if (!closeBounds.PtInRect(local)) {
+			return HTCAPTION;
+		}
+	}
+	return HTCLIENT;
+}
+
+void CFourPhoneLoginDlg::OnCloseButton()
+{
+	if (!requestInProgress) {
+		EndDialog(IDCANCEL);
+	}
 }
 
 void CFourPhoneLoginDlg::OnOK()
@@ -298,6 +439,14 @@ bool CFourPhoneLoginDlg::LoadSelectedSipConfig()
 void CFourPhoneLoginDlg::ShowStep(Step nextStep)
 {
 	step = nextStep;
+	CString heading = Translate(_T("Sign in to 4phone"));
+	if (step == StepTwoFactor) {
+		heading = Translate(_T("Verify your identity"));
+	}
+	else if (step == StepExtension) {
+		heading = Translate(_T("Choose an extension"));
+	}
+	GetDlgItem(IDC_4PHONE_HEADING)->SetWindowText(heading);
 
 	const int credentialsVisibility =
 		step == StepCredentials ? SW_SHOW : SW_HIDE;
@@ -339,6 +488,7 @@ void CFourPhoneLoginDlg::SetBusy(bool busy)
 	requestInProgress = busy;
 	GetDlgItem(IDOK)->EnableWindow(!busy);
 	GetDlgItem(IDCANCEL)->EnableWindow(!busy);
+	GetDlgItem(IDC_4PHONE_CLOSE)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_EMAIL)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_PASSWORD)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_CODE)->EnableWindow(!busy);
@@ -356,9 +506,10 @@ void CFourPhoneLoginDlg::SetStatus(
 	const CString& message,
 	bool isError)
 {
-	UNREFERENCED_PARAMETER(isError);
+	statusIsError = isError;
 	CWnd* status = GetDlgItem(IDC_4PHONE_STATUS);
 	status->SetWindowText(message);
+	status->Invalidate();
 	status->UpdateWindow();
 }
 

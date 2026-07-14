@@ -691,7 +691,7 @@ URL вызова
 Устройство для вызова
 
 [Ringing]
-Идет вызов
+Мелодия звонка
 
 [Ringtone]
 Мелодия вызова
@@ -930,6 +930,12 @@ Cайт программы
 [Sign in to 4phone]
 Вход в 4phone
 
+[Verify your identity]
+Подтвердите личность
+
+[Choose an extension]
+Выберите добавочный номер
+
 [2FA code]
 Код 2FA
 
@@ -1097,6 +1103,69 @@ Windows не смог защитить SIP-пароль. Настройки не
 
 [The interface language will change after restarting 4phone.]
 Язык интерфейса изменится после перезапуска 4phone.
+
+[Secure cloud telephony]
+Защищенная облачная телефония
+
+[Basic settings]
+Основные настройки
+
+[Advanced settings]
+Дополнительные настройки
+
+[Daily call settings. SIP and network controls are under Advanced settings.]
+Повседневные параметры звонков. Настройки SIP и сети находятся в дополнительных настройках.
+
+[Keep everyday options here. Open advanced settings for SIP and network controls.]
+Здесь собраны повседневные параметры. Настройки SIP и сети находятся в дополнительных настройках.
+
+[Audio]
+Аудио
+
+[Audio devices]
+Аудиоустройства
+
+[Ring device]
+Устройство звонка
+
+[Speakers]
+Динамики
+
+[Language]
+Язык
+
+[Behavior]
+Поведение
+
+[Application behavior]
+Поведение приложения
+
+[Use one call window]
+Использовать одно окно звонка
+
+[Bring incoming call to front]
+Выводить входящий звонок на передний план
+
+[Allow call waiting]
+Разрешить второй звонок
+
+[Start 4phone with Windows]
+Запускать 4phone вместе с Windows
+
+[System default]
+Системное значение
+
+[Minimize]
+Свернуть
+
+[Maximize]
+Развернуть
+
+[Restore]
+Восстановить
+
+[Close]
+Закрыть
 
 [AA]
 AA

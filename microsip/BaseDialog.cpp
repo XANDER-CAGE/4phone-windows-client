@@ -21,6 +21,7 @@
 #include "resource.h"
 #include "global.h"
 #include "settings.h"
+#include "FourPhoneTheme.h"
 
 CBaseDialog::CBaseDialog(UINT nIDTemplate, CWnd* pParent /*=NULL*/)
 	: CDialog(nIDTemplate, pParent),
@@ -34,6 +35,8 @@ BEGIN_MESSAGE_MAP(CBaseDialog, CDialog)
 	//{{AFX_MSG_MAP(CBaseDialog)
 	ON_WM_GETMINMAXINFO()
 	ON_WM_SIZE()
+	ON_WM_CTLCOLOR()
+	ON_WM_ERASEBKGND()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -198,6 +201,17 @@ BOOL CBaseDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::CreateFont(this, themeFont, 9);
+	FourPhoneTheme::ApplyFontToChildren(this, &themeFont);
+	FourPhoneTheme::PrepareControls(this);
+	if (canvasBrush.GetSafeHandle() == NULL) {
+		canvasBrush.CreateSolidBrush(FourPhoneTheme::Canvas());
+	}
+	if (whiteBrush.GetSafeHandle() == NULL) {
+		whiteBrush.CreateSolidBrush(FourPhoneTheme::White());
+	}
+
 	// use the initial dialog size as the default minimum
 	if ((m_szMinimum.cx == 0) && (m_szMinimum.cy == 0))
 	{
@@ -212,6 +226,47 @@ BOOL CBaseDialog::OnInitDialog()
 	m_szInitial = rcClient.Size();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+HBRUSH CBaseDialog::OnCtlColor(
+	CDC* dc,
+	CWnd* window,
+	UINT controlColor)
+{
+	HBRUSH brush = CDialog::OnCtlColor(
+		dc,
+		window,
+		controlColor);
+	if (dc == NULL) {
+		return brush;
+	}
+
+	if (controlColor == CTLCOLOR_EDIT ||
+		controlColor == CTLCOLOR_LISTBOX) {
+		dc->SetTextColor(FourPhoneTheme::Ink());
+		dc->SetBkColor(FourPhoneTheme::White());
+		return static_cast<HBRUSH>(whiteBrush.GetSafeHandle());
+	}
+
+	if (controlColor == CTLCOLOR_STATIC ||
+		controlColor == CTLCOLOR_BTN ||
+		controlColor == CTLCOLOR_DLG) {
+		dc->SetTextColor(FourPhoneTheme::InkSoft());
+		dc->SetBkMode(TRANSPARENT);
+		return static_cast<HBRUSH>(canvasBrush.GetSafeHandle());
+	}
+	return brush;
+}
+
+BOOL CBaseDialog::OnEraseBkgnd(CDC* dc)
+{
+	if (dc == NULL) {
+		return CDialog::OnEraseBkgnd(dc);
+	}
+	CRect bounds;
+	GetClientRect(bounds);
+	dc->FillSolidRect(bounds, FourPhoneTheme::Canvas());
+	return TRUE;
 }
 
 void CBaseDialog::OnGetMinMaxInfo(MINMAXINFO FAR * lpMMI)

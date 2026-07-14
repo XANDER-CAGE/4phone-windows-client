@@ -18,6 +18,7 @@
 
 #include "StdAfx.h"   
 #include "ButtonBottom.h"   
+#include "FourPhoneTheme.h"
 
  // CButtonBottom   
 IMPLEMENT_DYNAMIC(CButtonBottom, CMFCButton)
@@ -28,11 +29,11 @@ CButtonBottom::CButtonBottom()
 	m_bDrawFocus = FALSE;
 	m_bHighlightChecked = FALSE;
 
-	m_clrButton = RGB(255, 255, 255);
-	m_clrButtonHover = RGB(224, 238, 249);
-	m_clrButtonPushed = RGB(92, 145, 219);
-	m_clrButtonText = RGB(0, 0, 0);
-	m_clrButtonTextPushed = RGB(255, 255, 255);
+	m_clrButton = FourPhoneTheme::White();
+	m_clrButtonHover = FourPhoneTheme::BrandSurface();
+	m_clrButtonPushed = FourPhoneTheme::Brand();
+	m_clrButtonText = FourPhoneTheme::InkSoft();
+	m_clrButtonTextPushed = FourPhoneTheme::White();
 }
 
 CButtonBottom::~CButtonBottom()

@@ -42,8 +42,34 @@ _T("Video Call"),
 _T("Message"),
 };
 
+static bool IsSimpleSettingsControl(int id)
+{
+	switch (id) {
+	case IDC_SETTINGS_SIMPLE_RING:
+	case IDC_SETTINGS_SIMPLE_SPEAKERS:
+	case IDC_SETTINGS_SIMPLE_MICROPHONE:
+	case IDC_SETTINGS_SIMPLE_LANGUAGE:
+	case IDC_SETTINGS_SIMPLE_SINGLE_MODE:
+	case IDC_SETTINGS_SIMPLE_BRING_TO_FRONT:
+	case IDC_SETTINGS_SIMPLE_CALL_WAITING:
+	case IDC_SETTINGS_SIMPLE_STARTUP:
+	case IDC_SETTINGS_SIMPLE_HEADING:
+	case IDC_SETTINGS_SIMPLE_DESCRIPTION:
+	case IDC_SETTINGS_SIMPLE_AUDIO_HEADING:
+	case IDC_SETTINGS_SIMPLE_BEHAVIOR_HEADING:
+	case IDC_SETTINGS_SIMPLE_RING_LABEL:
+	case IDC_SETTINGS_SIMPLE_SPEAKERS_LABEL:
+	case IDC_SETTINGS_SIMPLE_MICROPHONE_LABEL:
+	case IDC_SETTINGS_SIMPLE_LANGUAGE_LABEL:
+		return true;
+	default:
+		return false;
+	}
+}
+
 SettingsDlg::SettingsDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(SettingsDlg::IDD, pParent)
+	, simpleView(true)
 {
 	initialLanguage = accountSettings.language;
     if (!Create(IDD, pParent)) {
@@ -54,6 +80,17 @@ SettingsDlg::SettingsDlg(CWnd* pParent /*=NULL*/)
 
 SettingsDlg::~SettingsDlg(void)
 {
+}
+
+void SettingsDlg::DoDataExchange(CDataExchange* dataExchange)
+{
+	CDialog::DoDataExchange(dataExchange);
+	DDX_Control(dataExchange, IDOK, okButton);
+	DDX_Control(dataExchange, IDCANCEL, cancelButton);
+	DDX_Control(
+		dataExchange,
+		IDC_SETTINGS_VIEW_TOGGLE,
+		viewToggleButton);
 }
 
 int SettingsDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -75,11 +112,33 @@ BOOL SettingsDlg::OnInitDialog()
 	CString str;
 
 	CDialog::OnInitDialog();
+	CRect initialClient;
+	GetClientRect(initialClient);
+	layoutBase = initialClient.Size();
 
 	aaOptionsDlg = NULL;
 	featureCodesDlg = NULL;
 
 	TranslateDialog(this->m_hWnd);
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::CreateFont(this, uiFont, 9);
+	FourPhoneTheme::CreateFont(this, headingFont, 16, FW_SEMIBOLD);
+	FourPhoneTheme::CreateFont(this, sectionFont, 10, FW_SEMIBOLD);
+	FourPhoneTheme::ApplyFontToChildren(this, &uiFont);
+	FourPhoneTheme::PrepareControls(this);
+	if (canvasBrush.GetSafeHandle() == NULL) {
+		canvasBrush.CreateSolidBrush(FourPhoneTheme::Canvas());
+	}
+	if (whiteBrush.GetSafeHandle() == NULL) {
+		whiteBrush.CreateSolidBrush(FourPhoneTheme::White());
+	}
+	okButton.SetVariant(CFourPhoneButton::Primary);
+	okButton.SetGlyph(CFourPhoneButton::GlyphArrowRight);
+	cancelButton.SetVariant(CFourPhoneButton::Secondary);
+	viewToggleButton.SetVariant(CFourPhoneButton::Ghost);
+	GetDlgItem(IDC_SETTINGS_SIMPLE_HEADING)->SetFont(&headingFont);
+	GetDlgItem(IDC_SETTINGS_SIMPLE_AUDIO_HEADING)->SetFont(&sectionFont);
+	GetDlgItem(IDC_SETTINGS_SIMPLE_BEHAVIOR_HEADING)->SetFont(&sectionFont);
 
 	str.Format(_T("<a>%s</a>"),Translate(_T("Feature Codes")));
 	GetDlgItem(IDC_SETTINGS_FEATURE_CODES)->SetWindowText(str);
@@ -390,8 +449,251 @@ BOOL SettingsDlg::OnInitDialog()
 			((CButton*)GetDlgItem(IDC_SETTINGS_STARTUP))->SetCheck(1);
 		}
 	}
+	SyncSimpleFromAdvanced();
+	ShowSettingsView(true);
 
 	return TRUE;
+}
+
+void SettingsDlg::CopyCombo(
+	CComboBox* source,
+	CComboBox* target)
+{
+	if (source == NULL || target == NULL) {
+		return;
+	}
+	target->ResetContent();
+	for (int i = 0; i < source->GetCount(); ++i) {
+		CString text;
+		source->GetLBText(i, text);
+		target->AddString(text);
+	}
+	target->SetCurSel(source->GetCurSel());
+}
+
+void SettingsDlg::SyncSimpleFromAdvanced()
+{
+	CopyCombo(
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_RING),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_RING));
+	CopyCombo(
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SPEAKERS),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_SPEAKERS));
+	CopyCombo(
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_MICROPHONE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_MICROPHONE));
+	CopyCombo(
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_LANGUAGE));
+
+	const int sourceIds[] = {
+		IDC_SETTINGS_SINGLE_MODE,
+		IDC_SETTINGS_BRING_TO_FRONT,
+		IDC_SETTINGS_CALL_WAITING,
+		IDC_SETTINGS_STARTUP
+	};
+	const int targetIds[] = {
+		IDC_SETTINGS_SIMPLE_SINGLE_MODE,
+		IDC_SETTINGS_SIMPLE_BRING_TO_FRONT,
+		IDC_SETTINGS_SIMPLE_CALL_WAITING,
+		IDC_SETTINGS_SIMPLE_STARTUP
+	};
+	for (int i = 0; i < _countof(sourceIds); ++i) {
+		((CButton*)GetDlgItem(targetIds[i]))->SetCheck(
+			((CButton*)GetDlgItem(sourceIds[i]))->GetCheck());
+	}
+}
+
+void SettingsDlg::SyncAdvancedFromSimple()
+{
+	CComboBox* sources[] = {
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_RING),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_SPEAKERS),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_MICROPHONE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_LANGUAGE)
+	};
+	CComboBox* targets[] = {
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_RING),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SPEAKERS),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_MICROPHONE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE)
+	};
+	for (int i = 0; i < _countof(sources); ++i) {
+		targets[i]->SetCurSel(sources[i]->GetCurSel());
+	}
+
+	const int sourceIds[] = {
+		IDC_SETTINGS_SIMPLE_SINGLE_MODE,
+		IDC_SETTINGS_SIMPLE_BRING_TO_FRONT,
+		IDC_SETTINGS_SIMPLE_CALL_WAITING,
+		IDC_SETTINGS_SIMPLE_STARTUP
+	};
+	const int targetIds[] = {
+		IDC_SETTINGS_SINGLE_MODE,
+		IDC_SETTINGS_BRING_TO_FRONT,
+		IDC_SETTINGS_CALL_WAITING,
+		IDC_SETTINGS_STARTUP
+	};
+	for (int i = 0; i < _countof(sourceIds); ++i) {
+		((CButton*)GetDlgItem(targetIds[i]))->SetCheck(
+			((CButton*)GetDlgItem(sourceIds[i]))->GetCheck());
+	}
+}
+
+void SettingsDlg::ShowSettingsView(bool showSimple)
+{
+	simpleView = showSimple;
+	for (CWnd* child = GetWindow(GW_CHILD);
+		child != NULL;
+		child = child->GetWindow(GW_HWNDNEXT)) {
+		const int id = child->GetDlgCtrlID();
+		const bool alwaysVisible =
+			id == IDOK ||
+			id == IDCANCEL ||
+			id == IDC_SETTINGS_VIEW_TOGGLE;
+		const bool visible =
+			alwaysVisible ||
+			(showSimple
+				? IsSimpleSettingsControl(id)
+				: !IsSimpleSettingsControl(id));
+		child->ShowWindow(visible ? SW_SHOW : SW_HIDE);
+	}
+
+	viewToggleButton.SetWindowText(
+		Translate(
+			showSimple
+				? _T("Advanced settings")
+				: _T("Basic settings")));
+	CRect viewUnits(
+		showSimple ? 458 : 20,
+		showSimple ? 18 : 288,
+		showSimple ? 568 : 150,
+		showSimple ? 38 : 302);
+	viewUnits.left = MulDiv(viewUnits.left, layoutBase.cx, 600);
+	viewUnits.right = MulDiv(viewUnits.right, layoutBase.cx, 600);
+	viewUnits.top = MulDiv(viewUnits.top, layoutBase.cy, 308);
+	viewUnits.bottom = MulDiv(viewUnits.bottom, layoutBase.cy, 308);
+	viewToggleButton.MoveWindow(viewUnits);
+
+	CRect okUnits(
+		showSimple ? 402 : 418,
+		showSimple ? 294 : 288,
+		showSimple ? 482 : 488,
+		showSimple ? 316 : 302);
+	okUnits.left = MulDiv(okUnits.left, layoutBase.cx, 600);
+	okUnits.right = MulDiv(okUnits.right, layoutBase.cx, 600);
+	okUnits.top = MulDiv(okUnits.top, layoutBase.cy, 308);
+	okUnits.bottom = MulDiv(okUnits.bottom, layoutBase.cy, 308);
+	okButton.MoveWindow(okUnits);
+	CRect cancelUnits(
+		showSimple ? 488 : 493,
+		showSimple ? 294 : 288,
+		showSimple ? 568 : 563,
+		showSimple ? 316 : 302);
+	cancelUnits.left = MulDiv(cancelUnits.left, layoutBase.cx, 600);
+	cancelUnits.right = MulDiv(cancelUnits.right, layoutBase.cx, 600);
+	cancelUnits.top = MulDiv(cancelUnits.top, layoutBase.cy, 308);
+	cancelUnits.bottom = MulDiv(cancelUnits.bottom, layoutBase.cy, 308);
+	cancelButton.MoveWindow(cancelUnits);
+
+	CRect targetClient(
+		0,
+		0,
+		layoutBase.cx,
+		MulDiv(
+			showSimple ? 330 : 308,
+			layoutBase.cy,
+			308));
+	CRect window(0, 0, targetClient.Width(), targetClient.Height());
+	AdjustWindowRectEx(
+		window,
+		GetStyle(),
+		FALSE,
+		GetExStyle());
+	SetWindowPos(
+		NULL,
+		0,
+		0,
+		window.Width(),
+		window.Height(),
+		SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+	Invalidate();
+}
+
+void SettingsDlg::OnBnClickedViewToggle()
+{
+	if (simpleView) {
+		SyncAdvancedFromSimple();
+		ShowSettingsView(false);
+	}
+	else {
+		SyncSimpleFromAdvanced();
+		ShowSettingsView(true);
+	}
+}
+
+void SettingsDlg::OnPaint()
+{
+	CPaintDC dc(this);
+	CRect client;
+	GetClientRect(client);
+	dc.FillSolidRect(client, FourPhoneTheme::Canvas());
+	if (simpleView) {
+		CRect cardUnits(20, 16, 580, 286);
+		cardUnits.left = MulDiv(cardUnits.left, layoutBase.cx, 600);
+		cardUnits.right = MulDiv(cardUnits.right, layoutBase.cx, 600);
+		cardUnits.top = MulDiv(cardUnits.top, layoutBase.cy, 308);
+		cardUnits.bottom = MulDiv(cardUnits.bottom, layoutBase.cy, 308);
+		CPen line(PS_SOLID, 1, FourPhoneTheme::Line());
+		CPen* oldPen = dc.SelectObject(&line);
+		CBrush card(FourPhoneTheme::White());
+		CBrush* oldBrush = dc.SelectObject(&card);
+		dc.RoundRect(cardUnits, CPoint(12, 12));
+		dc.SelectObject(oldBrush);
+		dc.SelectObject(oldPen);
+	}
+}
+
+BOOL SettingsDlg::OnEraseBkgnd(CDC*)
+{
+	return TRUE;
+}
+
+HBRUSH SettingsDlg::OnCtlColor(
+	CDC* dc,
+	CWnd* window,
+	UINT controlColor)
+{
+	HBRUSH brush = CDialog::OnCtlColor(
+		dc,
+		window,
+		controlColor);
+	if (dc == NULL || window == NULL) {
+		return brush;
+	}
+	const bool simpleControl =
+		IsSimpleSettingsControl(window->GetDlgCtrlID());
+	if (controlColor == CTLCOLOR_EDIT ||
+		controlColor == CTLCOLOR_LISTBOX) {
+		dc->SetTextColor(FourPhoneTheme::Ink());
+		dc->SetBkColor(FourPhoneTheme::White());
+		return static_cast<HBRUSH>(whiteBrush.GetSafeHandle());
+	}
+	if (controlColor == CTLCOLOR_STATIC ||
+		controlColor == CTLCOLOR_BTN ||
+		controlColor == CTLCOLOR_DLG) {
+		dc->SetTextColor(
+			window->GetDlgCtrlID() ==
+				IDC_SETTINGS_SIMPLE_HEADING
+				? FourPhoneTheme::Ink()
+				: FourPhoneTheme::InkSoft());
+		dc->SetBkMode(TRANSPARENT);
+		return static_cast<HBRUSH>(
+			(simpleView && simpleControl)
+				? whiteBrush.GetSafeHandle()
+				: canvasBrush.GetSafeHandle());
+	}
+	return brush;
 }
 
 void SettingsDlg::OnDestroy()
@@ -457,6 +759,10 @@ BEGIN_MESSAGE_MAP(SettingsDlg, CDialog)
 	ON_BN_CLICKED(IDC_SETTINGS_AA_OPTIONS, &SettingsDlg::OnBnClickedAAOptions)
 	ON_BN_CLICKED(IDC_SETTINGS_DNS_SRV_CHECKBOX, &SettingsDlg::OnBnClickedDnsSrv)
 	ON_BN_CLICKED(IDC_SETTINGS_STUN_CHECKBOX, &SettingsDlg::OnBnClickedStun)
+	ON_BN_CLICKED(IDC_SETTINGS_VIEW_TOGGLE, &SettingsDlg::OnBnClickedViewToggle)
+	ON_WM_PAINT()
+	ON_WM_ERASEBKGND()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 void SettingsDlg::OnClose()
@@ -472,6 +778,9 @@ void SettingsDlg::OnBnClickedCancel()
 
 void SettingsDlg::OnBnClickedOk()
 {
+	if (simpleView) {
+		SyncAdvancedFromSimple();
+	}
 	this->ShowWindow(SW_HIDE);
 	mainDlg->PJDestroy();
 	PostMessage(UM_UPDATE_SETTINGS, 0, 0);

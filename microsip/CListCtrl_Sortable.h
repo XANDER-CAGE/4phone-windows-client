@@ -10,6 +10,7 @@ class CListCtrl_Sortable : public CListCtrl_LabelTip
 	DECLARE_MESSAGE_MAP();
 
 	afx_msg BOOL OnHeaderClick(NMHDR* pNMHDR, LRESULT* pResult);
+	afx_msg void OnCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
 	void PreSubclassWindow();
 
 public:

@@ -48,11 +48,19 @@ protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO FAR* lpMMI);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
+	afx_msg HBRUSH OnCtlColor(
+		CDC* dc,
+		CWnd* window,
+		UINT controlColor);
+	afx_msg BOOL OnEraseBkgnd(CDC* dc);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 private:
 	CBaseDialog *mainWnd;
+	CFont themeFont;
+	CBrush canvasBrush;
+	CBrush whiteBrush;
 
 	struct SMovingChild
 	{

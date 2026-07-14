@@ -3,6 +3,7 @@
 #include "CListCtrl_Sortable.h"
 #include "Resource.h"
 #include "mainDlg.h"
+#include "FourPhoneTheme.h"
 
 #include <shlwapi.h>
 
@@ -12,6 +13,7 @@
 
 BEGIN_MESSAGE_MAP(CListCtrl_Sortable, CListCtrl_LabelTip)
 	ON_NOTIFY_REFLECT_EX(LVN_COLUMNCLICK, OnHeaderClick)	// Column Click
+	ON_NOTIFY_REFLECT(NM_CUSTOMDRAW, OnCustomDraw)
 END_MESSAGE_MAP()
 
 namespace {
@@ -106,6 +108,44 @@ BOOL CListCtrl_Sortable::OnHeaderClick(NMHDR* pNMHDR, LRESULT* pResult)
 	return FALSE;	// Let parent-dialog get chance
 }
 
+void CListCtrl_Sortable::OnCustomDraw(
+	NMHDR* notification,
+	LRESULT* result)
+{
+	NMLVCUSTOMDRAW* draw =
+		reinterpret_cast<NMLVCUSTOMDRAW*>(notification);
+	if (draw == NULL || result == NULL) {
+		return;
+	}
+
+	switch (draw->nmcd.dwDrawStage) {
+	case CDDS_PREPAINT:
+		*result = CDRF_NOTIFYITEMDRAW;
+		return;
+	case CDDS_ITEMPREPAINT:
+		if ((draw->nmcd.uItemState & CDIS_SELECTED) != 0) {
+			draw->clrText = FourPhoneTheme::Ink();
+			draw->clrTextBk = FourPhoneTheme::BrandSurface();
+		}
+		else if ((draw->nmcd.uItemState & CDIS_HOT) != 0) {
+			draw->clrText = FourPhoneTheme::Ink();
+			draw->clrTextBk = RGB(248, 252, 250);
+		}
+		else {
+			draw->clrText = FourPhoneTheme::Ink();
+			draw->clrTextBk =
+				(draw->nmcd.dwItemSpec % 2) == 0
+					? FourPhoneTheme::White()
+					: RGB(248, 250, 249);
+		}
+		*result = CDRF_DODEFAULT;
+		return;
+	default:
+		*result = CDRF_DODEFAULT;
+		return;
+	}
+}
+
 void CListCtrl_Sortable::SetSortArrow(int colIndex, bool ascending)
 {
 	if (IsThemeEnabled())
@@ -166,6 +206,7 @@ void CListCtrl_Sortable::PreSubclassWindow()
 	SetExtendedStyle(GetExtendedStyle() | LVS_EX_HEADERDRAGDROP);
 
 	EnableWindowTheme(GetSafeHwnd(), L"Explorer", NULL);
+	FourPhoneTheme::ApplyListColors(this);
 }
 
 void CListCtrl_Sortable::ResetSortOrder()

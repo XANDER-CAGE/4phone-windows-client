@@ -26,6 +26,7 @@
 #include "langpack.h"
 #include "Hid.h"
 #include "ButtonSafe.h"
+#include "FourPhoneTheme.h"
 
 static CString digitsDTMFDelayed;
 
@@ -454,9 +455,12 @@ BOOL Dialer::OnInitDialog()
 	lf.lfHeight = -MulDiv(13, dpiY, 96);
 	m_font_call.CreateFontIndirect(&lf);
 	//--
-	lf.lfHeight = -MulDiv(19, dpiY, 96);
+	lf.lfHeight = -MulDiv(17, dpiY, 96);
+	lf.lfWeight = FW_SEMIBOLD;
 	m_font.CreateFontIndirect(&lf);
 	//--
+	lf.lfHeight = -MulDiv(18, dpiY, 96);
+	lf.lfWeight = FW_NORMAL;
 	m_font_number.CreateFontIndirect(&lf);
 	//--
 	CComboBox *combobox = (CComboBox*)GetDlgItem(IDC_NUMBER);
@@ -1011,7 +1015,7 @@ HBRUSH Dialer::OnCtlColor(CDC* pDC, CWnd *pWnd, UINT nCtlColor)
 		|| pWnd == &m_ButtonPlusInput
 		|| pWnd == &m_ButtonPlusOutput
 		) {
-		pDC->SetTextColor(RGB(127, 127, 127));
+		pDC->SetTextColor(FourPhoneTheme::Muted());
 	}
 	return br;
 }

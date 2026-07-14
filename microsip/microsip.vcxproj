@@ -259,6 +259,7 @@
     <ClCompile Include="FourPhoneCredentialStore.cpp" />
     <ClCompile Include="FourPhoneLoginDlg.cpp" />
     <ClCompile Include="FourPhoneProvisioning.cpp" />
+    <ClCompile Include="FourPhoneTheme.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="IconButton.cpp" />
     <ClCompile Include="jumplist.cpp" />
@@ -318,6 +319,7 @@
     <ClInclude Include="FourPhoneCredentialStore.h" />
     <ClInclude Include="FourPhoneLoginDlg.h" />
     <ClInclude Include="FourPhoneProvisioning.h" />
+    <ClInclude Include="FourPhoneTheme.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="IconButton.h" />
     <ClInclude Include="jumplist.h" />

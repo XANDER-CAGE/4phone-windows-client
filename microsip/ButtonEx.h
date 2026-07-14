@@ -30,9 +30,13 @@ public:
 	COLORREF        m_FaceColor; 
 	COLORREF        m_TextColor;
 private:
+	bool m_Hovered;
+	bool m_TrackingMouse;
 protected: 
 	DECLARE_MESSAGE_MAP()
 public: 
 	void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg LRESULT OnMouseLeave(WPARAM, LPARAM);
+	virtual void DrawItem(LPDRAWITEMSTRUCT drawItem);
 	BOOL EnableWindow(BOOL bEnable = TRUE);
 };

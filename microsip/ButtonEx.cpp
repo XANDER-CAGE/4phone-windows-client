@@ -18,6 +18,7 @@
 
 #include "StdAfx.h"   
 #include "ButtonEx.h"   
+#include "FourPhoneTheme.h"
 
 // CButtonEx   
 IMPLEMENT_DYNAMIC(CButtonEx, CMFCButton)
@@ -25,6 +26,10 @@ CButtonEx::CButtonEx()
 {   
 	m_nFlatStyle = CMFCButton::BUTTONSTYLE_NOBORDERS;
 	m_bTransparent = false;
+	m_FaceColor = FourPhoneTheme::Brand();
+	m_TextColor = FourPhoneTheme::White();
+	m_Hovered = false;
+	m_TrackingMouse = false;
 }
    
 CButtonEx::~CButtonEx()   
@@ -34,12 +39,101 @@ CButtonEx::~CButtonEx()
 BEGIN_MESSAGE_MAP(CButtonEx, CMFCButton)   
     //{{AFX_MSG_MAP(CButtonEx)
 	ON_WM_MOUSEMOVE()
+	ON_MESSAGE(WM_MOUSELEAVE, OnMouseLeave)
     //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 void CButtonEx::OnMouseMove(UINT nFlags, CPoint point)
 {
-	CButton::OnMouseMove(nFlags, point);
+	if (!m_TrackingMouse) {
+		TRACKMOUSEEVENT event = {};
+		event.cbSize = sizeof(event);
+		event.dwFlags = TME_LEAVE;
+		event.hwndTrack = GetSafeHwnd();
+		if (TrackMouseEvent(&event)) {
+			m_TrackingMouse = true;
+		}
+	}
+	if (!m_Hovered) {
+		m_Hovered = true;
+		Invalidate();
+	}
+	CMFCButton::OnMouseMove(nFlags, point);
+}
+
+LRESULT CButtonEx::OnMouseLeave(WPARAM, LPARAM)
+{
+	m_TrackingMouse = false;
+	m_Hovered = false;
+	Invalidate();
+	return 0;
+}
+
+void CButtonEx::DrawItem(LPDRAWITEMSTRUCT drawItem)
+{
+	if (drawItem == NULL || drawItem->hDC == NULL) {
+		return;
+	}
+
+	CDC dc;
+	dc.Attach(drawItem->hDC);
+	CRect bounds(drawItem->rcItem);
+	dc.FillSolidRect(bounds, FourPhoneTheme::Canvas());
+
+	const bool disabled = (drawItem->itemState & ODS_DISABLED) != 0;
+	const bool pressed = (drawItem->itemState & ODS_SELECTED) != 0;
+	COLORREF background = m_FaceColor;
+	COLORREF text = m_TextColor;
+	if (disabled) {
+		background = RGB(226, 231, 233);
+		text = FourPhoneTheme::Muted();
+	}
+	else if (pressed) {
+		background = m_FaceColor == FourPhoneTheme::Brand()
+			? FourPhoneTheme::BrandDark()
+			: RGB(185, 45, 56);
+	}
+	else if (m_Hovered) {
+		background = m_FaceColor == FourPhoneTheme::Brand()
+			? RGB(8, 163, 113)
+			: RGB(207, 57, 68);
+	}
+
+	CRect shape(bounds);
+	shape.DeflateRect(2, 2);
+	CPen pen(PS_SOLID, 1, background);
+	CBrush brush(background);
+	CPen* oldPen = dc.SelectObject(&pen);
+	CBrush* oldBrush = dc.SelectObject(&brush);
+	const int radius = FourPhoneTheme::Scale(GetSafeHwnd(), 10);
+	dc.RoundRect(shape, CPoint(radius, radius));
+	dc.SelectObject(oldBrush);
+	dc.SelectObject(oldPen);
+
+	CString caption;
+	GetWindowText(caption);
+	const int oldMode = dc.SetBkMode(TRANSPARENT);
+	const COLORREF oldColor = dc.SetTextColor(text);
+	CFont* font = GetFont();
+	CFont* oldFont = font != NULL
+		? dc.SelectObject(font)
+		: NULL;
+	dc.DrawText(
+		caption,
+		shape,
+		DT_CENTER | DT_VCENTER | DT_SINGLELINE |
+		DT_END_ELLIPSIS | DT_NOPREFIX);
+	if (oldFont != NULL) {
+		dc.SelectObject(oldFont);
+	}
+	dc.SetTextColor(oldColor);
+	dc.SetBkMode(oldMode);
+	if ((drawItem->itemState & ODS_FOCUS) != 0) {
+		CRect focus(shape);
+		focus.DeflateRect(4, 4);
+		dc.DrawFocusRect(focus);
+	}
+	dc.Detach();
 }
 
 BOOL CButtonEx::EnableWindow(BOOL bEnable)

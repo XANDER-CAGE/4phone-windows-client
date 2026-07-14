@@ -691,7 +691,7 @@ Vaqtni talab qilish
 Jiringlash qurilmasi
 
 [Ringing]
-Jiringlash
+Qo'ng'iroq ohangi
 
 [Ringtone]
 Rington
@@ -930,6 +930,12 @@ O'zgartirishlar kuchga kirishi uchun ilovani qayta ishga tushirishingiz kerak.
 [Sign in to 4phone]
 4phone tizimiga kirish
 
+[Verify your identity]
+Shaxsingizni tasdiqlang
+
+[Choose an extension]
+Ichki raqamni tanlang
+
 [2FA code]
 2FA kodi
 
@@ -1097,6 +1103,69 @@ Interfeys tili
 
 [The interface language will change after restarting 4phone.]
 Interfeys tili 4phone qayta ishga tushirilgandan keyin o'zgaradi.
+
+[Secure cloud telephony]
+Xavfsiz bulutli telefoniya
+
+[Basic settings]
+Asosiy sozlamalar
+
+[Advanced settings]
+Kengaytirilgan sozlamalar
+
+[Daily call settings. SIP and network controls are under Advanced settings.]
+Kundalik qo'ng'iroq sozlamalari. SIP va tarmoq sozlamalari kengaytirilgan bo'limda.
+
+[Keep everyday options here. Open advanced settings for SIP and network controls.]
+Kundalik parametrlar shu yerda. SIP va tarmoq sozlamalari kengaytirilgan bo'limda.
+
+[Audio]
+Audio
+
+[Audio devices]
+Audio qurilmalar
+
+[Ring device]
+Qo'ng'iroq qurilmasi
+
+[Speakers]
+Karnaylar
+
+[Language]
+Til
+
+[Behavior]
+Ishlash tartibi
+
+[Application behavior]
+Ilova ishlashi
+
+[Use one call window]
+Bitta qo'ng'iroq oynasidan foydalanish
+
+[Bring incoming call to front]
+Kiruvchi qo'ng'iroqni oldinga chiqarish
+
+[Allow call waiting]
+Qo'ng'iroqni kutishga ruxsat berish
+
+[Start 4phone with Windows]
+Windows bilan birga 4phone ni ishga tushirish
+
+[System default]
+Tizim standarti
+
+[Minimize]
+Yig'ish
+
+[Maximize]
+Kattalashtirish
+
+[Restore]
+Tiklash
+
+[Close]
+Yopish
 
 [AA]
 AA

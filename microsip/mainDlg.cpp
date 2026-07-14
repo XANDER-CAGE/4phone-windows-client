@@ -1640,8 +1640,11 @@ void CmainDlg::PostNcDestroy()
 void CmainDlg::DoDataExchange(CDataExchange * pDX)
 {
 	CBaseDialog::DoDataExchange(pDX);
-	//	DDX_Control(pDX, IDD_MAIN, *mainDlg);
+	DDX_Control(pDX, IDC_MAIN_TAB, m_MainTab);
 	DDX_Control(pDX, IDC_MAIN_MENU, m_ButtonMenu);
+	DDX_Control(pDX, IDC_MAIN_MINIMIZE, m_ButtonMinimize);
+	DDX_Control(pDX, IDC_MAIN_MAXIMIZE, m_ButtonMaximize);
+	DDX_Control(pDX, IDC_MAIN_CLOSE, m_ButtonClose);
 }
 
 BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
@@ -1652,6 +1655,10 @@ BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
 	ON_WM_MOVE()
 	ON_WM_SIZE()
 	ON_WM_CLOSE()
+	ON_WM_PAINT()
+	ON_WM_ERASEBKGND()
+	ON_WM_NCCALCSIZE()
+	ON_WM_NCHITTEST()
 	ON_WM_CTLCOLOR()
 	ON_WM_CONTEXTMENU()
 	ON_WM_DEVICECHANGE()
@@ -1659,6 +1666,9 @@ BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
 	ON_WM_DESTROY()
 	ON_BN_CLICKED(IDOK, OnBnClickedOk)
 	ON_BN_CLICKED(IDC_MAIN_MENU, OnBnClickedMenu)
+	ON_BN_CLICKED(IDC_MAIN_MINIMIZE, OnBnClickedMinimize)
+	ON_BN_CLICKED(IDC_MAIN_MAXIMIZE, OnBnClickedMaximize)
+	ON_BN_CLICKED(IDC_MAIN_CLOSE, OnBnClickedCloseButton)
 	ON_MESSAGE(UM_UPDATEWINDOWTEXT, OnUpdateWindowText)
 	ON_MESSAGE(UM_NOTIFYICON, onTrayNotify)
 	ON_MESSAGE(UM_CREATE_RINGING, onCreateRingingDlg)
@@ -1741,9 +1751,26 @@ void CmainDlg::OnBnClickedOk()
 
 void CmainDlg::OnBnClickedMenu()
 {
-	m_ButtonMenu.ModifyStyle(BS_DEFPUSHBUTTON, BS_PUSHBUTTON);
 	MainPopupMenu(true);
 	TabFocusSet();
+}
+
+void CmainDlg::OnBnClickedMinimize()
+{
+	PostMessage(WM_SYSCOMMAND, SC_MINIMIZE, 0);
+}
+
+void CmainDlg::OnBnClickedMaximize()
+{
+	PostMessage(
+		WM_SYSCOMMAND,
+		IsZoomed() ? SC_RESTORE : SC_MAXIMIZE,
+		0);
+}
+
+void CmainDlg::OnBnClickedCloseButton()
+{
+	PostMessage(WM_SYSCOMMAND, SC_CLOSE, 0);
 }
 
 CmainDlg::CmainDlg(CWnd * pParent /*=NULL*/)
@@ -1770,6 +1797,7 @@ CmainDlg::CmainDlg(CWnd * pParent /*=NULL*/)
 	m_tabPrev = -1;
 	newMessages = false;
 	missed = false;
+	iconStatusbar = IDI_DEFAULT;
 
 	usersDirectoryLoaded = false;
 	shortcutsURLLoaded = false;
@@ -1831,6 +1859,7 @@ int CmainDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	WM_TASKBARRESTARTMESSAGE = RegisterWindowMessage(_T("TaskbarCreated"));
 	CMFCVisualManager::SetDefaultManager(RUNTIME_CLASS(CMFCVisualManagerWindows));
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
 
 	CDC* pDC = GetDC();
 	if (pDC) {
@@ -1922,6 +1951,24 @@ BOOL CmainDlg::OnInitDialog()
 	PostMessage(WM_SETICON, ICON_SMALL, (LPARAM)iconSmall);
 
 	TranslateDialog(this->m_hWnd);
+	FourPhoneTheme::CreateFont(this, m_HeaderLogoFont, 11, FW_BOLD);
+	FourPhoneTheme::CreateFont(this, m_HeaderStatusFont, 8, FW_SEMIBOLD);
+	if (m_MainCanvasBrush.GetSafeHandle() == NULL) {
+		m_MainCanvasBrush.CreateSolidBrush(FourPhoneTheme::Canvas());
+	}
+
+	m_ButtonMenu.SetVariant(CFourPhoneButton::Ghost);
+	m_ButtonMenu.SetGlyph(CFourPhoneButton::GlyphMenu);
+	m_ButtonMenu.SetWindowText(Translate(_T("Menu")));
+	m_ButtonMinimize.SetVariant(CFourPhoneButton::Caption);
+	m_ButtonMinimize.SetGlyph(CFourPhoneButton::GlyphMinimize);
+	m_ButtonMinimize.SetWindowText(Translate(_T("Minimize")));
+	m_ButtonMaximize.SetVariant(CFourPhoneButton::Caption);
+	m_ButtonMaximize.SetGlyph(CFourPhoneButton::GlyphMaximize);
+	m_ButtonClose.SetVariant(CFourPhoneButton::CaptionClose);
+	m_ButtonClose.SetGlyph(CFourPhoneButton::GlyphClose);
+	m_ButtonClose.SetWindowText(Translate(_T("Close")));
+	UpdateCaptionButtons();
 
 	SetIcon(m_hIcon, TRUE);			// Set big icon
 	SetIcon(m_hIcon, FALSE);		// Set small icon
@@ -1939,6 +1986,8 @@ BOOL CmainDlg::OnInitDialog()
 	m_bar.SetIndicators(indicators, sizeof(indicators) / sizeof(indicators[0]));
 	m_bar.SetPaneInfo(IDS_STATUSBAR, IDS_STATUSBAR, SBPS_STRETCH, 0);
 	m_bar.SetPaneInfo(IDS_STATUSBAR2, IDS_STATUSBAR2, SBPS_NOBORDERS, 0);
+	statusctrl.SetBkColor(FourPhoneTheme::White());
+	statusctrl.SetFont(&m_HeaderStatusFont);
 	RepositionBars(AFX_IDW_CONTROLBAR_FIRST, AFX_IDW_CONTROLBAR_LAST, IDS_STATUSBAR);
 
 	AutoMove(m_bar.m_hWnd, 0, 100, 100, 0);
@@ -1957,9 +2006,17 @@ BOOL CmainDlg::OnInitDialog()
 
 	int mx;
 	int my;
-	int mW = accountSettings.mainW > 0 ? accountSettings.mainW : rect.Width();
+	int mW = accountSettings.mainW > 0
+		? (accountSettings.mainW > rect.Width()
+			? accountSettings.mainW
+			: rect.Width())
+		: rect.Width();
 
-	int mH = accountSettings.mainH > 0 ? accountSettings.mainH : rect.Height();
+	int mH = accountSettings.mainH > 0
+		? (accountSettings.mainH > rect.Height()
+			? accountSettings.mainH
+			: rect.Height())
+		: rect.Height();
 	// coors not specified, first run
 	if (!accountSettings.mainX && !accountSettings.mainY) {
 		CRect primaryScreenRect;
@@ -2031,32 +2088,33 @@ BOOL CmainDlg::OnInitDialog()
 	imageListStatus->Add(LoadImageIcon(IDI_BUSY_STARRED));
 	imageListStatus->Add(LoadImageIcon(IDI_DEFAULT_STARRED));
 
-	CTabCtrl* tab = (CTabCtrl*)GetDlgItem(IDC_MAIN_TAB);
+	CTabCtrl* tab = &m_MainTab;
 	CRect tabRect;
 	tab->GetWindowRect(&tabRect);
 	ScreenToClient(&tabRect);
 	TC_ITEM tabItem;
-	CRect lineRect;
-	lineRect.bottom = 3;
-	MapDialogRect(&lineRect);
-	tabRect.top += lineRect.bottom;
-	tabRect.bottom += lineRect.bottom;
-	tab->SetWindowPos(NULL, tabRect.left, tabRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 	tabItem.mask = TCIF_TEXT | TCIF_PARAM;
 	mapRect.right = _GLOBAL_TAB_WIDTH; // tab item width
-	mapRect.bottom = 5; // bottom line height
+	mapRect.bottom = 0;
 	MapDialogRect(&mapRect);
 	CSize size;
-	size.SetSize(mapRect.right, tabRect.Height() - mapRect.bottom);
+	size.SetSize(mapRect.right, tabRect.Height());
 	tab->SetItemSize(size);
-
-	m_ButtonMenu.SetIcon(LoadImageIcon(IDI_DROPDOWN));
 
 	if (widthAdd) {
 		CRect pageRect;
 		m_ButtonMenu.GetWindowRect(pageRect);
 		ScreenToClient(pageRect);
 		m_ButtonMenu.SetWindowPos(NULL, pageRect.left + widthAdd, pageRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		m_ButtonMinimize.GetWindowRect(pageRect);
+		ScreenToClient(pageRect);
+		m_ButtonMinimize.SetWindowPos(NULL, pageRect.left + widthAdd, pageRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		m_ButtonMaximize.GetWindowRect(pageRect);
+		ScreenToClient(pageRect);
+		m_ButtonMaximize.SetWindowPos(NULL, pageRect.left + widthAdd, pageRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
+		m_ButtonClose.GetWindowRect(pageRect);
+		ScreenToClient(pageRect);
+		m_ButtonClose.SetWindowPos(NULL, pageRect.left + widthAdd, pageRect.top, 0, 0, SWP_NOZORDER | SWP_NOSIZE);
 		//--
 		tabRect.right += widthAdd;
 		tab->SetWindowPos(NULL, 0, 0, tabRect.Width(), tabRect.Height(), SWP_NOZORDER | SWP_NOMOVE);
@@ -2064,8 +2122,11 @@ BOOL CmainDlg::OnInitDialog()
 
 	AutoMove(tab->m_hWnd, 0, 0, 100, 0);
 	AutoMove(m_ButtonMenu.m_hWnd, 100, 0, 0, 0);
+	AutoMove(m_ButtonMinimize.m_hWnd, 100, 0, 0, 0);
+	AutoMove(m_ButtonMaximize.m_hWnd, 100, 0, 0, 0);
+	AutoMove(m_ButtonClose.m_hWnd, 100, 0, 0, 0);
 
-	BYTE offset = tabRect.bottom - 1;
+	const int offset = tabRect.bottom;
 	CRect pageRect;
 
 	pageDialer = new Dialer(this);
@@ -3706,6 +3767,7 @@ void CmainDlg::OnTcnSelchangeTab(NMHDR * pNMHDR, LRESULT * pResult)
 	}
 	else {
 	}
+	tab->Invalidate();
 	*pResult = 0;
 }
 
@@ -3859,7 +3921,18 @@ void CmainDlg::UpdateWindowText(CString text, int icon, bool afterRegister)
 	}
 #endif
 
-        m_bar.SetPaneText(0, str);
+	m_bar.SetPaneText(0, str);
+	m_HeaderStatus = str;
+	if (GetSafeHwnd() != NULL) {
+		CRect tabBounds;
+		m_MainTab.GetWindowRect(tabBounds);
+		ScreenToClient(tabBounds);
+		CRect client;
+		GetClientRect(client);
+		InvalidateRect(
+			CRect(0, 0, client.right, tabBounds.top),
+			FALSE);
+	}
 
 	if (icon != -1) {
 		HICON hIcon = (HICON)LoadImage(
@@ -3868,6 +3941,14 @@ void CmainDlg::UpdateWindowText(CString text, int icon, bool afterRegister)
 			IMAGE_ICON, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), LR_SHARED);
 		m_bar.GetStatusBarCtrl().SetIcon(0, hIcon);
 		iconStatusbar = icon;
+		CRect tabBounds;
+		m_MainTab.GetWindowRect(tabBounds);
+		ScreenToClient(tabBounds);
+		CRect client;
+		GetClientRect(client);
+		InvalidateRect(
+			CRect(0, 0, client.right, tabBounds.top),
+			FALSE);
 
 		//--
 		tnd.uFlags = NIF_ICON;
@@ -4852,6 +4933,201 @@ void CmainDlg::OnClose()
 	DestroyWindow();
 }
 
+void CmainDlg::OnPaint()
+{
+	CPaintDC dc(this);
+	CRect client;
+	GetClientRect(client);
+
+	CRect header(client);
+	CRect tabBounds;
+	m_MainTab.GetWindowRect(tabBounds);
+	ScreenToClient(tabBounds);
+	header.bottom = tabBounds.top;
+	dc.FillSolidRect(header, FourPhoneTheme::White());
+
+	CRect logoUnits(14, 8, 104, 29);
+	MapDialogRect(logoUnits);
+	FourPhoneTheme::DrawBrandLogo(dc, logoUnits, &m_HeaderLogoFont);
+
+	CRect menuBounds;
+	m_ButtonMenu.GetWindowRect(menuBounds);
+	ScreenToClient(menuBounds);
+	if (menuBounds.left - logoUnits.right >
+		FourPhoneTheme::Scale(GetSafeHwnd(), 18)) {
+		const int dotSize = FourPhoneTheme::Scale(GetSafeHwnd(), 7);
+		const int dotX = logoUnits.right +
+			FourPhoneTheme::Scale(GetSafeHwnd(), 8);
+		const int dotY = header.CenterPoint().y - dotSize / 2;
+		const COLORREF statusColor =
+			iconStatusbar == IDI_ONLINE || iconStatusbar == IDI_SECURE
+				? FourPhoneTheme::Brand()
+				: FourPhoneTheme::Muted();
+		CBrush statusBrush(statusColor);
+		CBrush* oldBrush = dc.SelectObject(&statusBrush);
+		CPen statusPen(PS_SOLID, 1, statusColor);
+		CPen* oldPen = dc.SelectObject(&statusPen);
+		dc.Ellipse(
+			dotX,
+			dotY,
+			dotX + dotSize,
+			dotY + dotSize);
+		dc.SelectObject(oldPen);
+		dc.SelectObject(oldBrush);
+
+		CRect statusBounds(
+			dotX + dotSize + FourPhoneTheme::Scale(GetSafeHwnd(), 5),
+			header.top,
+			menuBounds.left - FourPhoneTheme::Scale(GetSafeHwnd(), 5),
+			header.bottom);
+		if (statusBounds.Width() >
+			FourPhoneTheme::Scale(GetSafeHwnd(), 28)) {
+			CFont* oldFont = dc.SelectObject(&m_HeaderStatusFont);
+			const int oldMode = dc.SetBkMode(TRANSPARENT);
+			const COLORREF oldColor =
+				dc.SetTextColor(FourPhoneTheme::Muted());
+			dc.DrawText(
+				m_HeaderStatus,
+				statusBounds,
+				DT_LEFT | DT_VCENTER | DT_SINGLELINE |
+				DT_END_ELLIPSIS | DT_NOPREFIX);
+			dc.SetTextColor(oldColor);
+			dc.SetBkMode(oldMode);
+			dc.SelectObject(oldFont);
+		}
+	}
+
+	CPen divider(PS_SOLID, 1, FourPhoneTheme::Line());
+	CPen* oldPen = dc.SelectObject(&divider);
+	dc.MoveTo(header.left, header.bottom - 1);
+	dc.LineTo(header.right, header.bottom - 1);
+	dc.SelectObject(oldPen);
+}
+
+BOOL CmainDlg::OnEraseBkgnd(CDC* dc)
+{
+	if (dc == NULL) {
+		return FALSE;
+	}
+	CRect bounds;
+	GetClientRect(bounds);
+	dc->FillSolidRect(bounds, FourPhoneTheme::Canvas());
+	return TRUE;
+}
+
+void CmainDlg::OnNcCalcSize(
+	BOOL calculateValidRects,
+	NCCALCSIZE_PARAMS* parameters)
+{
+	if (!calculateValidRects || parameters == NULL) {
+		return;
+	}
+
+	if (IsZoomed()) {
+		const int frameX =
+			GetSystemMetrics(SM_CXSIZEFRAME) +
+			GetSystemMetrics(SM_CXPADDEDBORDER);
+		const int frameY =
+			GetSystemMetrics(SM_CYSIZEFRAME) +
+			GetSystemMetrics(SM_CXPADDEDBORDER);
+		parameters->rgrc[0].left += frameX;
+		parameters->rgrc[0].right -= frameX;
+		parameters->rgrc[0].top += frameY;
+		parameters->rgrc[0].bottom -= frameY;
+	}
+}
+
+LRESULT CmainDlg::OnNcHitTest(CPoint point)
+{
+	CRect windowBounds;
+	GetWindowRect(windowBounds);
+	const int x = point.x - windowBounds.left;
+	const int y = point.y - windowBounds.top;
+	const int frame = FourPhoneTheme::Scale(GetSafeHwnd(), 7);
+	const bool resizable =
+		(GetStyle() & WS_THICKFRAME) != 0 && !IsZoomed();
+
+	if (resizable) {
+		const bool left = x < frame;
+		const bool right = x >= windowBounds.Width() - frame;
+		const bool top = y < frame;
+		const bool bottom = y >= windowBounds.Height() - frame;
+		if (top && left) {
+			return HTTOPLEFT;
+		}
+		if (top && right) {
+			return HTTOPRIGHT;
+		}
+		if (bottom && left) {
+			return HTBOTTOMLEFT;
+		}
+		if (bottom && right) {
+			return HTBOTTOMRIGHT;
+		}
+		if (left) {
+			return HTLEFT;
+		}
+		if (right) {
+			return HTRIGHT;
+		}
+		if (top) {
+			return HTTOP;
+		}
+		if (bottom) {
+			return HTBOTTOM;
+		}
+	}
+
+	CPoint clientPoint(point);
+	ScreenToClient(&clientPoint);
+	CRect tabBounds;
+	m_MainTab.GetWindowRect(tabBounds);
+	ScreenToClient(tabBounds);
+	if (clientPoint.y >= 0 &&
+		clientPoint.y < tabBounds.top) {
+		const HWND child = ChildWindowFromPointEx(
+			GetSafeHwnd(),
+			clientPoint,
+			CWP_SKIPINVISIBLE);
+		if (child != NULL && child != GetSafeHwnd()) {
+			const int id = GetDlgCtrlID(child);
+			if (id == IDC_MAIN_MINIMIZE) {
+				return HTMINBUTTON;
+			}
+			if (id == IDC_MAIN_MAXIMIZE &&
+				m_ButtonMaximize.IsWindowEnabled()) {
+				return HTMAXBUTTON;
+			}
+			if (id == IDC_MAIN_CLOSE) {
+				return HTCLOSE;
+			}
+			if (id == IDC_MAIN_MENU) {
+				return HTCLIENT;
+			}
+		}
+		return HTCAPTION;
+	}
+	return HTCLIENT;
+}
+
+void CmainDlg::UpdateCaptionButtons()
+{
+	if (!::IsWindow(m_ButtonMaximize.GetSafeHwnd())) {
+		return;
+	}
+	m_ButtonMaximize.SetGlyph(
+		IsZoomed()
+			? CFourPhoneButton::GlyphRestore
+			: CFourPhoneButton::GlyphMaximize);
+	m_ButtonMaximize.SetWindowText(
+		Translate(
+			IsZoomed()
+				? _T("Restore")
+				: _T("Maximize")));
+	m_ButtonMaximize.EnableWindow(
+		(GetStyle() & WS_MAXIMIZEBOX) != 0);
+}
+
 HBRUSH CmainDlg::OnCtlColor(CDC * pDC, CWnd * pWnd, UINT nCtlColor)
 {
 	HBRUSH br = CBaseDialog::OnCtlColor(pDC, pWnd, nCtlColor);
@@ -4915,6 +5191,19 @@ void CmainDlg::OnMove(int x, int y)
 void CmainDlg::OnSize(UINT type, int w, int h)
 {
 	CBaseDialog::OnSize(type, w, h);
+	UpdateCaptionButtons();
+	int headerBottom = FourPhoneTheme::Scale(
+		GetSafeHwnd(),
+		_GLOBAL_HEADER_HEIGHT);
+	if (::IsWindow(m_MainTab.GetSafeHwnd())) {
+		CRect tabBounds;
+		m_MainTab.GetWindowRect(tabBounds);
+		ScreenToClient(tabBounds);
+		headerBottom = tabBounds.top;
+	}
+	InvalidateRect(
+		CRect(0, 0, w, headerBottom),
+		FALSE);
 	if (this->IsWindowVisible() && type == SIZE_RESTORED) {
 		CRect cRect;
 		GetWindowRect(&cRect);

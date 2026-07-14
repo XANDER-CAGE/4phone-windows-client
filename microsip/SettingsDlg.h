@@ -22,6 +22,7 @@
 #include "global.h"
 #include "AAOptionsDlg.h"
 #include "FeatureCodesDlg.h"
+#include "FourPhoneTheme.h"
 
 class SettingsDlg :
 	public CDialog
@@ -39,10 +40,25 @@ protected:
 	CStringArray forwardingValues;
 	CStringArray denyIncomingValues;
 	CString initialLanguage;
+	bool simpleView;
+	CFourPhoneButton okButton;
+	CFourPhoneButton cancelButton;
+	CFourPhoneButton viewToggleButton;
+	CFont uiFont;
+	CFont headingFont;
+	CFont sectionFont;
+	CBrush canvasBrush;
+	CBrush whiteBrush;
+	CSize layoutBase;
 
+	virtual void DoDataExchange(CDataExchange* dataExchange);
 	virtual BOOL OnInitDialog();
 	afx_msg void OnDestroy();
 	virtual void PostNcDestroy();
+	void ShowSettingsView(bool showSimple);
+	void SyncSimpleFromAdvanced();
+	void SyncAdvancedFromSimple();
+	void CopyCombo(CComboBox* source, CComboBox* target);
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -93,5 +109,12 @@ public:
 	afx_msg void OnBnClickedAAOptions();
 	afx_msg void OnBnClickedDnsSrv();
 	afx_msg void OnBnClickedStun();
+	afx_msg void OnBnClickedViewToggle();
+	afx_msg void OnPaint();
+	afx_msg BOOL OnEraseBkgnd(CDC* dc);
+	afx_msg HBRUSH OnCtlColor(
+		CDC* dc,
+		CWnd* window,
+		UINT controlColor);
 };
 

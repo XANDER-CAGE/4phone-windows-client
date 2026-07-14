@@ -53,6 +53,7 @@
 #include "Preview.h"
 #include "Transfer.h"
 #include "StatusBar.h"
+#include "FourPhoneTheme.h"
 
 // CmainDlg dialog
 class CmainDlg : public CBaseDialog
@@ -66,7 +67,11 @@ public:
 	enum { IDD = IDD_MAIN };
 
 	bool m_startMinimized;
-	CButton m_ButtonMenu;
+	CFourPhoneTabCtrl m_MainTab;
+	CFourPhoneButton m_ButtonMenu;
+	CFourPhoneButton m_ButtonMinimize;
+	CFourPhoneButton m_ButtonMaximize;
+	CFourPhoneButton m_ButtonClose;
 	SettingsDlg* settingsDlg;
 	bool shortcutsEnabled;
 	bool shortcutsBottom;
@@ -187,6 +192,10 @@ protected:
 	NOTIFYICONDATA tnd;
 	StatusBar m_bar;
 	CMMNotificationClient *mmNotificationClient;
+	CFont m_HeaderLogoFont;
+	CFont m_HeaderStatusFont;
+	CString m_HeaderStatus;
+	CBrush m_MainCanvasBrush;
 
 	unsigned char m_tabPrev;
 
@@ -227,7 +236,16 @@ public:
 	afx_msg BOOL OnQueryEndSession();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedMenu();
+	afx_msg void OnBnClickedMinimize();
+	afx_msg void OnBnClickedMaximize();
+	afx_msg void OnBnClickedCloseButton();
 	afx_msg void OnClose();
+	afx_msg void OnPaint();
+	afx_msg BOOL OnEraseBkgnd(CDC* dc);
+	afx_msg void OnNcCalcSize(
+		BOOL calculateValidRects,
+		NCCALCSIZE_PARAMS* parameters);
+	afx_msg LRESULT OnNcHitTest(CPoint point);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd *pWnd, UINT nCtlColor);
 	afx_msg void OnContextMenu(CWnd *pWnd, CPoint point );
 	afx_msg BOOL OnDeviceChange(UINT nEventType, DWORD_PTR dwData);
@@ -269,6 +287,9 @@ public:
 	afx_msg void createPreviewWin();
 #endif
 	afx_msg	void OnUpdatePane(CCmdUI* pCmdUI);
+
+private:
+	void UpdateCaptionButtons();
 };
 
 extern CmainDlg *mainDlg;
