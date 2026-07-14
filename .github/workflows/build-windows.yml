@@ -8,6 +8,7 @@ on:
     paths:
       - ".github/workflows/build-windows.yml"
       - "build/**"
+      - "installer/**"
       - "microsip/**"
       - "vcpkg.json"
 
@@ -45,18 +46,43 @@ jobs:
         shell: pwsh
         run: .\build\build-windows.ps1
 
-      - name: Create SHA-256 checksum
+      - name: Ensure Inno Setup
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+          )
+          if (-not ($candidates | Where-Object { Test-Path $_ } | Select-Object -First 1)) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) {
+              throw "Не удалось установить Inno Setup"
+            }
+          }
+
+      - name: Build installer
+        shell: pwsh
+        run: .\build\build-installer.ps1
+
+      - name: Create portable SHA-256 checksum
         shell: pwsh
         run: |
           $exe = "microsip\Release\4phone.exe"
           $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
-          "$hash  4phone.exe" | Set-Content -Encoding ascii "$exe.sha256"
+          [System.IO.File]::WriteAllText(
+            "$exe.sha256",
+            "$hash  4phone.exe`n",
+            [System.Text.Encoding]::ASCII)
 
-      - name: Upload executable
+      - name: Upload installer and portable files
         uses: actions/upload-artifact@v4
         with:
           name: 4phone-win32-${{ github.run_number }}
           path: |
+            microsip/Release/4phone-setup.exe
+            microsip/Release/4phone-setup.exe.sha256
             microsip/Release/4phone.exe
             microsip/Release/4phone.exe.sha256
             microsip/Release/langpack_russian.txt
