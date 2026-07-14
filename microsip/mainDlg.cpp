@@ -26,13 +26,13 @@
 #include "global.h"
 #include "ModelessMessageBox.h"
 #include "json.h"
-#include "Markup.h"
 #include "langpack.h"
 #include "jumplist.h"
 #include "atlenc.h"
 #include "Hid.h"
 #include "CMask.h"
 #include "FourPhoneProvisioning.h"
+#include <pugixml.hpp>
 
 #include <winuser.h>
 #include <windows.h>
@@ -43,6 +43,7 @@
 #include <Dbt.h>
 #include <Strsafe.h>
 #include <locale.h> 
+#include <vector>
 #include <Wtsapi32.h>
 #include "atlrx.h"
 
@@ -74,6 +75,53 @@ static int usersDirectorySequence;
 static int usersDirectoryRefresh;
 static int usersDirectorySilent;
 static int usersDirectoryReconnect;
+
+static CString XmlText(const char* value)
+{
+	return MSIP::Utf8DecodeUni(value != NULL ? value : "");
+}
+
+static bool CopyXmlAttribute(
+	pugi::xml_node node,
+	const char* attributeName,
+	LPCTSTR fieldName,
+	CString& destination,
+	ContactWithFields* contact)
+{
+	const pugi::xml_attribute attribute = node.attribute(attributeName);
+	if (!attribute) {
+		return false;
+	}
+	contact->fields.AddTail(fieldName);
+	destination = XmlText(attribute.value());
+	return true;
+}
+
+static pugi::xml_node FindChild(
+	pugi::xml_node node,
+	const char* firstName,
+	const char* secondName = NULL)
+{
+	pugi::xml_node child = node.child(firstName);
+	if (!child && secondName != NULL) {
+		child = node.child(secondName);
+	}
+	return child;
+}
+
+static void CollectDirectoryEntries(
+	pugi::xml_node node,
+	std::vector<pugi::xml_node>& entries)
+{
+	for (pugi::xml_node child : node.children()) {
+		const char* name = child.name();
+		if (_stricmp(name, "entry") == 0 ||
+			_stricmp(name, "DirectoryEntry") == 0) {
+			entries.push_back(child);
+		}
+		CollectDirectoryEntries(child, entries);
+	}
+}
 
 CCriticalSection gethostbyaddrThreadCS;
 static CString gethostbyaddrThreadResult;
@@ -5459,87 +5507,121 @@ LRESULT CmainDlg::onUsersDirectoryLoaded(WPARAM wParam, LPARAM lParam)
 			}
 			else {
 				// XML
-				//PJ_LOG(3, (THIS_FILENAME, "XML foramt detected"));
-				CMarkup xml;
-				BOOL bResult = xml.SetDoc(MSIP::Utf8DecodeUni(response->body));
-				if (bResult) {
+				//PJ_LOG(3, (THIS_FILENAME, "XML format detected"));
+				pugi::xml_document xml;
+				const pugi::xml_parse_result result = xml.load_buffer(
+					response->body.GetString(),
+					response->body.GetLength(),
+					pugi::parse_default,
+					pugi::encoding_utf8);
+				if (result) {
 					ok = true;
-					if (xml.FindElem(_T("contacts"))) {
-						if (xml.FindAttrib(_T("refresh"))) {
-							usersDirectoryRefresh = _wtoi(xml.GetAttrib(_T("refresh")));
+					pugi::xml_node root = xml.document_element();
+					if (strcmp(root.name(), "contacts") == 0) {
+						if (root.attribute("refresh")) {
+							usersDirectoryRefresh =
+								root.attribute("refresh").as_int();
 						}
-						if (xml.FindAttrib(_T("silent"))) {
-							usersDirectorySilent = _wtoi(xml.GetAttrib(_T("silent")));
+						if (root.attribute("silent")) {
+							usersDirectorySilent =
+								root.attribute("silent").as_int();
 						}
-						while (xml.FindChildElem(_T("contact"))) {
-							xml.IntoElem();
+						for (pugi::xml_node item : root.children("contact")) {
 							contactWithFields = new ContactWithFields();
 							contactWithFields->contact.directory = true;
-							if (xml.FindAttrib(_T("name"))) {
-								contactWithFields->fields.AddTail(_T("name"));
-								contactWithFields->contact.name = xml.GetAttrib(_T("name"));
-							}
-							if (xml.FindAttrib(_T("number"))) {
-								contactWithFields->fields.AddTail(_T("number"));
-								contactWithFields->contact.number = xml.GetAttrib(_T("number"));
-							}
-							if (xml.FindAttrib(_T("firstname"))) {
-								contactWithFields->fields.AddTail(_T("firstname"));
-								contactWithFields->contact.firstname = xml.GetAttrib(_T("firstname"));
-							}
-							if (xml.FindAttrib(_T("lastname"))) {
-								contactWithFields->fields.AddTail(_T("lastname"));
-								contactWithFields->contact.lastname = xml.GetAttrib(_T("lastname"));
-							}
-							if (xml.FindAttrib(_T("phone"))) {
-								contactWithFields->fields.AddTail(_T("phone"));
-								contactWithFields->contact.phone = xml.GetAttrib(_T("phone"));
-							}
-							if (xml.FindAttrib(_T("mobile"))) {
-								contactWithFields->fields.AddTail(_T("mobile"));
-								contactWithFields->contact.mobile = xml.GetAttrib(_T("mobile"));
-							}
-							if (xml.FindAttrib(_T("email"))) {
-								contactWithFields->fields.AddTail(_T("email"));
-								contactWithFields->contact.email = xml.GetAttrib(_T("email"));
-							}
-							if (xml.FindAttrib(_T("address"))) {
-								contactWithFields->fields.AddTail(_T("address"));
-								contactWithFields->contact.address = xml.GetAttrib(_T("address"));
-							}
-							if (xml.FindAttrib(_T("city"))) {
-								contactWithFields->fields.AddTail(_T("city"));
-								contactWithFields->contact.city = xml.GetAttrib(_T("city"));
-							}
-							if (xml.FindAttrib(_T("state"))) {
-								contactWithFields->fields.AddTail(_T("state"));
-								contactWithFields->contact.state = xml.GetAttrib(_T("state"));
-							}
-							if (xml.FindAttrib(_T("zip"))) {
-								contactWithFields->fields.AddTail(_T("zip"));
-								contactWithFields->contact.zip = xml.GetAttrib(_T("zip"));
-							}
-							if (xml.FindAttrib(_T("comment"))) {
-								contactWithFields->fields.AddTail(_T("comment"));
-								contactWithFields->contact.comment = xml.GetAttrib(_T("comment"));
-							}
-							if (xml.FindAttrib(_T("id"))) {
-								contactWithFields->fields.AddTail(_T("id"));
-								contactWithFields->contact.id = xml.GetAttrib(_T("id"));
-							}
-							if (xml.FindAttrib(_T("info"))) {
-								contactWithFields->fields.AddTail(_T("info"));
-								contactWithFields->contact.info = xml.GetAttrib(_T("info"));
-							}
-							if (xml.FindAttrib(_T("presence"))) {
+							CopyXmlAttribute(
+								item,
+								"name",
+								_T("name"),
+								contactWithFields->contact.name,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"number",
+								_T("number"),
+								contactWithFields->contact.number,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"firstname",
+								_T("firstname"),
+								contactWithFields->contact.firstname,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"lastname",
+								_T("lastname"),
+								contactWithFields->contact.lastname,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"phone",
+								_T("phone"),
+								contactWithFields->contact.phone,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"mobile",
+								_T("mobile"),
+								contactWithFields->contact.mobile,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"email",
+								_T("email"),
+								contactWithFields->contact.email,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"address",
+								_T("address"),
+								contactWithFields->contact.address,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"city",
+								_T("city"),
+								contactWithFields->contact.city,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"state",
+								_T("state"),
+								contactWithFields->contact.state,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"zip",
+								_T("zip"),
+								contactWithFields->contact.zip,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"comment",
+								_T("comment"),
+								contactWithFields->contact.comment,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"id",
+								_T("id"),
+								contactWithFields->contact.id,
+								contactWithFields);
+							CopyXmlAttribute(
+								item,
+								"info",
+								_T("info"),
+								contactWithFields->contact.info,
+								contactWithFields);
+							if (item.attribute("presence")) {
 								contactWithFields->fields.AddTail(_T("presence"));
-								CString rab = xml.GetAttrib(_T("presence"));
-								contactWithFields->contact.presence = rab == _T("1");
+								contactWithFields->contact.presence =
+									item.attribute("presence").as_bool(false);
 							}
-							if (xml.FindAttrib(_T("starred"))) {
+							if (item.attribute("starred")) {
 								contactWithFields->fields.AddTail(_T("starred"));
-								CString rab = xml.GetAttrib(_T("starred"));
-								contactWithFields->contact.starred = rab == _T("1");
+								contactWithFields->contact.starred =
+									item.attribute("starred").as_bool(false);
 							}
 							if (pageContacts->ContactPrepare(&contactWithFields->contact)) {
 								contacts.Add(contactWithFields);
@@ -5547,80 +5629,99 @@ LRESULT CmainDlg::onUsersDirectoryLoaded(WPARAM wParam, LPARAM lParam)
 							else {
 								delete contactWithFields;
 							}
-							xml.OutOfElem();
 						}
 					}
-					else if (xml.FindElem(_T("YealinkIPPhoneBook"))) {
-						while (xml.FindChildElem(_T("Menu"))) {
-							xml.IntoElem();
-							while (xml.FindChildElem(_T("Unit"))) {
-								xml.IntoElem();
+					else if (strcmp(root.name(), "YealinkIPPhoneBook") == 0) {
+						for (pugi::xml_node menu : root.children("Menu")) {
+							for (pugi::xml_node unit : menu.children("Unit")) {
 								contactWithFields = new ContactWithFields();
 								contactWithFields->contact.directory = true;
-								if (xml.FindAttrib(_T("Name"))) {
-									contactWithFields->fields.AddTail(_T("name"));
-									contactWithFields->contact.name = xml.GetAttrib(_T("Name"));
-								}
-								if (xml.FindAttrib(_T("Phone1"))) {
-									contactWithFields->fields.AddTail(_T("number"));
-									contactWithFields->contact.number = xml.GetAttrib(_T("Phone1"));
-								}
-								if (xml.FindAttrib(_T("Phone2"))) {
-									contactWithFields->fields.AddTail(_T("phone"));
-									contactWithFields->contact.phone = xml.GetAttrib(_T("Phone2"));
-								}
-								if (xml.FindAttrib(_T("Phone3"))) {
-									contactWithFields->fields.AddTail(_T("mobile"));
-									contactWithFields->contact.mobile = xml.GetAttrib(_T("Phone3"));
-								}
+								CopyXmlAttribute(
+									unit,
+									"Name",
+									_T("name"),
+									contactWithFields->contact.name,
+									contactWithFields);
+								CopyXmlAttribute(
+									unit,
+									"Phone1",
+									_T("number"),
+									contactWithFields->contact.number,
+									contactWithFields);
+								CopyXmlAttribute(
+									unit,
+									"Phone2",
+									_T("phone"),
+									contactWithFields->contact.phone,
+									contactWithFields);
+								CopyXmlAttribute(
+									unit,
+									"Phone3",
+									_T("mobile"),
+									contactWithFields->contact.mobile,
+									contactWithFields);
 								if (pageContacts->ContactPrepare(&contactWithFields->contact)) {
 									contacts.Add(contactWithFields);
 								}
 								else {
 									delete contactWithFields;
 								}
-								xml.OutOfElem();
 							}
-							xml.OutOfElem();
 						}
 					}
 					else {
-						while (xml.FindChildElem(_T("entry")) || xml.FindChildElem(_T("DirectoryEntry"))) {
-							xml.IntoElem();
+						std::vector<pugi::xml_node> entries;
+						CollectDirectoryEntries(xml, entries);
+						for (pugi::xml_node entry : entries) {
 							contactWithFields = new ContactWithFields();
 							contactWithFields->contact.directory = true;
-							if (xml.FindChildElem(_T("extension")) || xml.FindChildElem(_T("Telephone"))) {
-								contactWithFields->fields.AddTail(_T("number"));
-								contactWithFields->contact.number = xml.GetChildData();
-								if (xml.FindChildElem(_T("extension")) || xml.FindChildElem(_T("Telephone"))) {
-									contactWithFields->fields.AddTail(_T("phone"));
-									contactWithFields->contact.phone = xml.GetChildData();
+							CString* phoneFields[] = {
+								&contactWithFields->contact.number,
+								&contactWithFields->contact.phone,
+								&contactWithFields->contact.mobile
+							};
+							LPCTSTR phoneNames[] = {
+								_T("number"),
+								_T("phone"),
+								_T("mobile")
+							};
+							int phoneIndex = 0;
+							for (pugi::xml_node child : entry.children()) {
+								const char* name = child.name();
+								if ((_stricmp(name, "extension") == 0 ||
+									_stricmp(name, "Telephone") == 0) &&
+									phoneIndex < _countof(phoneFields)) {
+									contactWithFields->fields.AddTail(
+										phoneNames[phoneIndex]);
+									*phoneFields[phoneIndex] =
+										XmlText(child.text().get());
+									phoneIndex++;
 								}
-								if (xml.FindChildElem(_T("extension")) || xml.FindChildElem(_T("Telephone"))) {
-									contactWithFields->fields.AddTail(_T("mobile"));
-									contactWithFields->contact.mobile = xml.GetChildData();
-								}
-								xml.ResetChildPos();
 							}
-							if (xml.FindChildElem(_T("name")) || xml.FindChildElem(_T("Name"))) {
+							pugi::xml_node child =
+								FindChild(entry, "name", "Name");
+							if (child) {
 								contactWithFields->fields.AddTail(_T("name"));
-								contactWithFields->contact.name = xml.GetChildData();
-								xml.ResetChildPos();
+								contactWithFields->contact.name =
+									XmlText(child.text().get());
 							}
-							if (xml.FindChildElem(_T("info"))) {
+							child = entry.child("info");
+							if (child) {
 								contactWithFields->fields.AddTail(_T("info"));
-								contactWithFields->contact.info = xml.GetChildData();
-								xml.ResetChildPos();
+								contactWithFields->contact.info =
+									XmlText(child.text().get());
 							}
-							if (xml.FindChildElem(_T("presence"))) {
+							child = entry.child("presence");
+							if (child) {
 								contactWithFields->fields.AddTail(_T("presence"));
-								contactWithFields->contact.presence = xml.GetChildData() == _T("1");
-								xml.ResetChildPos();
+								contactWithFields->contact.presence =
+									strcmp(child.text().get(), "1") == 0;
 							}
-							if (xml.FindChildElem(_T("starred"))) {
+							child = entry.child("starred");
+							if (child) {
 								contactWithFields->fields.AddTail(_T("starred"));
-								contactWithFields->contact.starred = xml.GetChildData() == _T("1");
-								xml.ResetChildPos();
+								contactWithFields->contact.starred =
+									strcmp(child.text().get(), "1") == 0;
 							}
 							if (pageContacts->ContactPrepare(&contactWithFields->contact)) {
 								contacts.Add(contactWithFields);
@@ -5628,7 +5729,6 @@ LRESULT CmainDlg::onUsersDirectoryLoaded(WPARAM wParam, LPARAM lParam)
 							else {
 								delete contactWithFields;
 							}
-							xml.OutOfElem();
 						}
 					}
 				}

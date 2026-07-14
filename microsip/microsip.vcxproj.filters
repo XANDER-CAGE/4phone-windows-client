@@ -96,9 +96,6 @@
     <ClCompile Include="StatusBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lib\Markup.cpp">
-      <Filter>Source Files\lib</Filter>
-    </ClCompile>
     <ClCompile Include="lib\Crypto.cpp">
       <Filter>Source Files\lib</Filter>
     </ClCompile>
@@ -250,9 +247,6 @@
     </ClInclude>
     <ClInclude Include="StatusBar.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lib\Markup.h">
-      <Filter>Header Files\lib</Filter>
     </ClInclude>
     <ClInclude Include="lib\Crypto.h">
       <Filter>Header Files\lib</Filter>

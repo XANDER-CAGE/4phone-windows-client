@@ -26,7 +26,19 @@
 #include "mainDlg.h"
 #include "langpack.h"
 #include "CSVFile.h"
-#include "Markup.h"
+#include <pugixml.hpp>
+
+namespace
+{
+	void SetXmlAttribute(
+		pugi::xml_node node,
+		const char* name,
+		const CString& value)
+	{
+		const CStringA utf8 = MSIP::Utf8EncodeUni(value);
+		node.append_attribute(name).set_value(utf8.GetString());
+	}
+}
 
 enum {
 	MSIP_CALLS_COL_NAME,
@@ -445,34 +457,40 @@ void Calls::OnMenuExport()
 			if (dlgFile.GetFileExt().IsEmpty()) {
 				filename.Append(_T(".xml"));
 			}
-			CMarkup xml;
-			xml.AddElem(_T("calls"));
-			xml.IntoElem();
+			pugi::xml_document xml;
+			pugi::xml_node declaration =
+				xml.append_child(pugi::node_declaration);
+			declaration.append_attribute("version").set_value("1.0");
+			declaration.append_attribute("encoding").set_value("UTF-8");
+			pugi::xml_node root = xml.append_child("calls");
 			CListCtrl* list = (CListCtrl*)GetDlgItem(IDC_CALLS);
 			int count = list->GetItemCount();
 			for (int i = 0; i < count; i++) {
 				Call* pCall = (Call*)list->GetItemData(i);
-				xml.AddElem(_T("call"));
-				xml.AddAttrib(_T("type"), pCall->type == MSIP_CALL_OUT ? _T("out") : (pCall->type == MSIP_CALL_IN ? _T("in") :
-					(pCall->type == MSIP_CALL_MISS ? _T("miss") : _T("else"))
-					));
-				xml.AddAttrib(_T("name"), pCall->name);
-				xml.AddAttrib(_T("number"), pCall->number);
+				pugi::xml_node call = root.append_child("call");
+				const char* type =
+					pCall->type == MSIP_CALL_OUT
+						? "out"
+						: (pCall->type == MSIP_CALL_IN
+							? "in"
+							: (pCall->type == MSIP_CALL_MISS
+								? "miss"
+								: "else"));
+				call.append_attribute("type").set_value(type);
+				SetXmlAttribute(call, "name", pCall->name);
+				SetXmlAttribute(call, "number", pCall->number);
 				CString str;
 				str.Format(_T("%d"), pCall->time);
-				xml.AddAttrib(_T("time"), str);
+				SetXmlAttribute(call, "time", str);
 				str.Format(_T("%d"), pCall->duration);
-				xml.AddAttrib(_T("duration"), str);
-				xml.AddAttrib(_T("info"), pCall->info);
+				SetXmlAttribute(call, "duration", str);
+				SetXmlAttribute(call, "info", pCall->info);
 			}
-			CFile file;
-			CFileException fileException;
-			if (file.Open(filename, CFile::modeCreate | CFile::modeWrite, &fileException)) {
-				CStringA str = "<?xml version=\"1.0\"?>\r\n";
-				str.Append(MSIP::Utf8EncodeUni(xml.GetDoc()));
-				file.Write(str.GetBuffer(), str.GetLength());
-				file.Close();
-			}
+			xml.save_file(
+				filename.GetString(),
+				"  ",
+				pugi::format_default,
+				pugi::encoding_utf8);
 		}
 		else {
 			if (dlgFile.GetFileExt().IsEmpty()) {

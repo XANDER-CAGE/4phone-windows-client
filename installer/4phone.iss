@@ -46,7 +46,8 @@ VersionInfoVersion={#AppVersionNumeric}
 VersionInfoCompany={#AppPublisher}
 VersionInfoDescription={#AppName} Windows Installer
 VersionInfoProductName={#AppName}
-VersionInfoProductVersion={#AppVersion}
+VersionInfoProductVersion={#AppVersionNumeric}
+VersionInfoProductTextVersion={#AppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -60,6 +61,10 @@ Name: "{localappdata}\{#AppName}"; Flags: uninsneveruninstall
 Source: "{#SourceDir}\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\langpack_russian.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\langpack_uzbek.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion
+Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\PRIVACY.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\SECURITY.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{src}\4phone.ini"; DestDir: "{userappdata}\{#AppName}"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "{userdesktop}\4phone.ini"; DestDir: "{userappdata}\{#AppName}"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall
 Source: "{src}\Contacts.xml"; DestDir: "{userappdata}\{#AppName}"; Flags: external skipifsourcedoesntexist onlyifdoesntexist uninsneveruninstall

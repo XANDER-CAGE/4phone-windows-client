@@ -1226,3 +1226,24 @@ SIP-INFO
 
 [Send]
 Отправить
+
+[Check for updates]
+Проверять обновления
+
+[Updates]
+Обновления
+
+[Every launch]
+При каждом запуске
+
+[Every day]
+Каждый день
+
+[Every week]
+Каждую неделю
+
+[Every month]
+Каждый месяц
+
+[Every three months]
+Каждые три месяца

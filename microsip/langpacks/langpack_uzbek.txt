@@ -1226,3 +1226,24 @@ Qo'ng'iroqni o'tkazish
 
 [Send]
 Yuborish
+
+[Check for updates]
+Yangilanishlarni tekshirish
+
+[Updates]
+Yangilanishlar
+
+[Every launch]
+Har ishga tushganda
+
+[Every day]
+Har kuni
+
+[Every week]
+Har hafta
+
+[Every month]
+Har oy
+
+[Every three months]
+Har uch oyda

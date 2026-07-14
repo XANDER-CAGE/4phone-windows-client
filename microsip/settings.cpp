@@ -706,6 +706,15 @@ void AccountSettings::Init()
     ptr = updatesInterval.GetBuffer(255);
     GetPrivateProfileString(section, _T("updatesInterval"), NULL, ptr, 256, iniFile);
     updatesInterval.ReleaseBuffer();
+    updatesInterval.MakeLower();
+    if (updatesInterval != _T("always") &&
+        updatesInterval != _T("daily") &&
+        updatesInterval != _T("weekly") &&
+        updatesInterval != _T("monthly") &&
+        updatesInterval != _T("quarterly") &&
+        updatesInterval != _T("never")) {
+        updatesInterval = _T("weekly");
+    }
     ptr = language.GetBuffer(15);
     GetPrivateProfileString(section, _T("language"), NULL, ptr, 16, iniFile);
     language.ReleaseBuffer();

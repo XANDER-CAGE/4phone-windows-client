@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<YealinkIPPhoneBook>
+  <Menu Name="4phone">
+    <Unit Name="Operator" Phone1="101" Phone2="+998711110101" Phone3="+998901110101" />
+  </Menu>
+</YealinkIPPhoneBook>

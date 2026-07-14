@@ -89,6 +89,13 @@ CUSTOM_TRANSLATIONS = {
         "Automatic 4phone client updates are not configured yet": "Автоматическое обновление клиента 4phone пока не настроено",
         "4phone encountered an error. Diagnostic file saved to: %s": "В 4phone произошла ошибка. Диагностический файл сохранен: %s",
         "Interface language": "Язык интерфейса",
+        "Check for updates": "Проверять обновления",
+        "Updates": "Обновления",
+        "Every launch": "При каждом запуске",
+        "Every day": "Каждый день",
+        "Every week": "Каждую неделю",
+        "Every month": "Каждый месяц",
+        "Every three months": "Каждые три месяца",
         "The interface language will change after restarting 4phone.": "Язык интерфейса изменится после перезапуска 4phone.",
         "Secure cloud telephony": "Защищенная облачная телефония",
         "Basic settings": "Основные настройки",
@@ -196,6 +203,13 @@ CUSTOM_TRANSLATIONS = {
         "Automatic 4phone client updates are not configured yet": "4phone klientining avtomatik yangilanishi hali sozlanmagan",
         "4phone encountered an error. Diagnostic file saved to: %s": "4phone da xato yuz berdi. Diagnostika fayli saqlandi: %s",
         "Interface language": "Interfeys tili",
+        "Check for updates": "Yangilanishlarni tekshirish",
+        "Updates": "Yangilanishlar",
+        "Every launch": "Har ishga tushganda",
+        "Every day": "Har kuni",
+        "Every week": "Har hafta",
+        "Every month": "Har oy",
+        "Every three months": "Har uch oyda",
         "The interface language will change after restarting 4phone.": "Interfeys tili 4phone qayta ishga tushirilgandan keyin o'zgaradi.",
         "Secure cloud telephony": "Xavfsiz bulutli telefoniya",
         "Basic settings": "Asosiy sozlamalar",
@@ -300,6 +314,8 @@ def fetch_translations(translation_id: int) -> OrderedDict[str, str]:
 def escape_langpack_value(value: str) -> str:
     return (
         value.replace("\\", "\\\\")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
         .replace("\r", "\\r")
         .replace("\n", "\\n")
     )

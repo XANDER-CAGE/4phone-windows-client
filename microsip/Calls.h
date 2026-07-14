@@ -23,7 +23,6 @@
 #include "BaseDialog.h"
 #include "CListCtrl_SortItemsEx.h"
 #include "CSVFile.h"
-#include "Markup.h"
 
 class Calls :
 	public CBaseDialog

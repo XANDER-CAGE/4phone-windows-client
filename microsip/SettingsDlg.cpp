@@ -42,6 +42,24 @@ _T("Video Call"),
 _T("Message"),
 };
 
+static LPCTSTR updateIntervalValues[] = {
+	_T("always"),
+	_T("daily"),
+	_T("weekly"),
+	_T("monthly"),
+	_T("quarterly"),
+	_T("never"),
+};
+
+static LPCTSTR updateIntervalLabels[] = {
+	_T("Every launch"),
+	_T("Every day"),
+	_T("Every week"),
+	_T("Every month"),
+	_T("Every three months"),
+	_T("Never"),
+};
+
 static bool IsSimpleSettingsControl(int id)
 {
 	switch (id) {
@@ -49,6 +67,7 @@ static bool IsSimpleSettingsControl(int id)
 	case IDC_SETTINGS_SIMPLE_SPEAKERS:
 	case IDC_SETTINGS_SIMPLE_MICROPHONE:
 	case IDC_SETTINGS_SIMPLE_LANGUAGE:
+	case IDC_SETTINGS_SIMPLE_UPDATES:
 	case IDC_SETTINGS_SIMPLE_SINGLE_MODE:
 	case IDC_SETTINGS_SIMPLE_BRING_TO_FRONT:
 	case IDC_SETTINGS_SIMPLE_CALL_WAITING:
@@ -61,6 +80,7 @@ static bool IsSimpleSettingsControl(int id)
 	case IDC_SETTINGS_SIMPLE_SPEAKERS_LABEL:
 	case IDC_SETTINGS_SIMPLE_MICROPHONE_LABEL:
 	case IDC_SETTINGS_SIMPLE_LANGUAGE_LABEL:
+	case IDC_SETTINGS_SIMPLE_UPDATES_LABEL:
 		return true;
 	default:
 		return false;
@@ -431,6 +451,17 @@ BOOL SettingsDlg::OnInitDialog()
 		i = 2;
 	}
 	combobox->SetCurSel(i);
+
+	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL);
+	int updateSelection = 2;
+	for (i = 0; i < _countof(updateIntervalValues); ++i) {
+		combobox->AddString(Translate(updateIntervalLabels[i]));
+		if (accountSettings.updatesInterval == updateIntervalValues[i]) {
+			updateSelection = i;
+		}
+	}
+	combobox->SetCurSel(updateSelection);
+
 	CRegKey regKey;
 	CString rab;
 	LPTSTR ptr;
@@ -485,6 +516,9 @@ void SettingsDlg::SyncSimpleFromAdvanced()
 	CopyCombo(
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE),
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_LANGUAGE));
+	CopyCombo(
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_UPDATES));
 
 	const int sourceIds[] = {
 		IDC_SETTINGS_SINGLE_MODE,
@@ -510,13 +544,15 @@ void SettingsDlg::SyncAdvancedFromSimple()
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_RING),
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_SPEAKERS),
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_MICROPHONE),
-		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_LANGUAGE)
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_LANGUAGE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_SIMPLE_UPDATES)
 	};
 	CComboBox* targets[] = {
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_RING),
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_SPEAKERS),
 		(CComboBox*)GetDlgItem(IDC_SETTINGS_MICROPHONE),
-		(CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE)
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE),
+		(CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL)
 	};
 	for (int i = 0; i < _countof(sources); ++i) {
 		targets[i]->SetCurSel(sources[i]->GetCurSel());
@@ -925,6 +961,13 @@ LRESULT SettingsDlg::OnUpdateSettings(WPARAM wParam, LPARAM lParam)
 	accountSettings.autoRecording = ((CButton*)GetDlgItem(IDC_SETTINGS_RECORDING_CHECKBOX))->GetCheck();
 	accountSettings.recordingButton = ((CButton*)GetDlgItem(IDC_SETTINGS_RECORDING_BUTTON))->GetCheck();
 	accountSettings.enableLocalAccount = ((CButton*)GetDlgItem(IDC_SETTINGS_ENABLE_LOCAL))->GetCheck();
+
+	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL);
+	i = combobox->GetCurSel();
+	if (i < 0 || i >= _countof(updateIntervalValues)) {
+		i = 2;
+	}
+	accountSettings.updatesInterval = updateIntervalValues[i];
 
 	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_LANGUAGE);
 	i = combobox->GetCurSel();

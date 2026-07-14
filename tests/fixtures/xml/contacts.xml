@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<contacts refresh="300" silent="1">
+  <contact name="Алишер &amp; Анна" number="100" firstname="Алишер" lastname="Юсупов" phone="+998711234567" mobile="+998901234567" email="alisher@example.uz" address="ул. Амира Темура, 1" city="Ташкент" state="" zip="100000" comment="Основной &lt;офис&gt;" id="contact-100" info="RU/UZ" presence="1" starred="1" directory="0" />
+</contacts>

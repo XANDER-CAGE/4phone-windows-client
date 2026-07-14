@@ -65,7 +65,7 @@ NON_TRANSLATABLE_KEYS = {
 }
 
 TRANSLATE_PATTERN = re.compile(
-    r"Translate\s*\(\s*_T\s*\(\s*"
+    r"Translate\s*\(\s*(?:_T|TEXT)\s*\(\s*"
     r"((?:\"(?:\\.|[^\"\\])*\"\s*)+)"
     r"\)\s*\)",
     re.DOTALL,

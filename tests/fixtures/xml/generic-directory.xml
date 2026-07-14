@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Directory>
+  <DirectoryEntry>
+    <Name>Support</Name>
+    <Telephone>102</Telephone>
+    <Telephone>+998711110102</Telephone>
+    <Telephone>+998901110102</Telephone>
+    <info>24/7</info>
+    <presence>1</presence>
+    <starred>0</starred>
+  </DirectoryEntry>
+  <entry>
+    <name>Sales</name>
+    <extension>103</extension>
+  </entry>
+</Directory>

@@ -117,7 +117,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x86);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -154,7 +154,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x64);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalOptions>/OPT:NOLBR %(AdditionalOptions)</AdditionalOptions>
@@ -186,7 +186,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x86);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -223,7 +223,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x64);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -273,7 +273,6 @@
     <ClCompile Include="lib\jsoncpp\json_writer.cpp" />
     <ClCompile Include="lib\langpack.cpp" />
     <ClCompile Include="LevelsSliderCtrl.cpp" />
-    <ClCompile Include="lib\Markup.cpp" />
     <ClCompile Include="lib\MessageBoxX.cpp" />
     <ClCompile Include="lib\ModelessMessageBox.cpp" />
     <ClCompile Include="lib\MSIP.cpp" />
@@ -333,7 +332,6 @@
     <ClInclude Include="lib\jsoncpp\json\json.h" />
     <ClInclude Include="lib\langpack.h" />
     <ClInclude Include="LevelsSliderCtrl.h" />
-    <ClInclude Include="lib\Markup.h" />
     <ClInclude Include="lib\MessageBoxX.h" />
     <ClInclude Include="lib\ModelessMessageBox.h" />
     <ClInclude Include="lib\MSIP.h" />

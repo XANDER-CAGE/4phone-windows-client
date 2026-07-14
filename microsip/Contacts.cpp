@@ -24,10 +24,27 @@
 #include "mainDlg.h"
 #include "langpack.h"
 #include "CSVFile.h"
-#include "Markup.h"
 #include "Transfer.h"
 #include "afxinet.h"
 #include "MessageBoxX.h"
+#include <pugixml.hpp>
+
+namespace
+{
+	void SetXmlAttribute(
+		pugi::xml_node node,
+		const char* name,
+		const CString& value)
+	{
+		const CStringA utf8 = MSIP::Utf8EncodeUni(value);
+		node.append_attribute(name).set_value(utf8.GetString());
+	}
+
+	CString GetXmlAttribute(pugi::xml_node node, const char* name)
+	{
+		return MSIP::Utf8DecodeUni(node.attribute(name).value());
+	}
+}
 
 static UINT_PTR blinkTimer = NULL;
 static bool blinkState = false;
@@ -1081,102 +1098,91 @@ void Contacts::ContactsSave()
 	if (isFiltered()) {
 		filterReset();
 	}
-	CMarkup xml;
-	xml.AddElem(_T("contacts"));
-	xml.IntoElem();
+	pugi::xml_document xml;
+	pugi::xml_node declaration = xml.append_child(pugi::node_declaration);
+	declaration.append_attribute("version").set_value("1.0");
+	declaration.append_attribute("encoding").set_value("UTF-8");
+	pugi::xml_node root = xml.append_child("contacts");
 
 	CListCtrl* list = (CListCtrl*)GetDlgItem(IDC_CONTACTS);
 	int count = list->GetItemCount();
 	for (int i = 0; i < count; i++) {
 		Contact* pContact = (Contact*)list->GetItemData(i);
-		xml.AddElem(_T("contact"));
-		xml.AddAttrib(_T("name"), pContact->name);
-		xml.AddAttrib(_T("number"), pContact->number);
-		xml.AddAttrib(_T("firstname"), pContact->firstname);
-		xml.AddAttrib(_T("lastname"), pContact->lastname);
-		xml.AddAttrib(_T("phone"), pContact->phone);
-		xml.AddAttrib(_T("mobile"), pContact->mobile);
-		xml.AddAttrib(_T("email"), pContact->email);
-		xml.AddAttrib(_T("address"), pContact->address);
-		xml.AddAttrib(_T("city"), pContact->city);
-		xml.AddAttrib(_T("state"), pContact->state);
-		xml.AddAttrib(_T("zip"), pContact->zip);
-		xml.AddAttrib(_T("comment"), pContact->comment);
-		xml.AddAttrib(_T("id"), pContact->id);
-		xml.AddAttrib(_T("info"), pContact->info);
-		xml.AddAttrib(_T("presence"), pContact->presence ? _T("1") : _T("0"));
-		xml.AddAttrib(_T("starred"), pContact->starred ? _T("1") : _T("0"));
-		xml.AddAttrib(_T("directory"), pContact->directory ? _T("1") : _T("0"));
+		pugi::xml_node contact = root.append_child("contact");
+		SetXmlAttribute(contact, "name", pContact->name);
+		SetXmlAttribute(contact, "number", pContact->number);
+		SetXmlAttribute(contact, "firstname", pContact->firstname);
+		SetXmlAttribute(contact, "lastname", pContact->lastname);
+		SetXmlAttribute(contact, "phone", pContact->phone);
+		SetXmlAttribute(contact, "mobile", pContact->mobile);
+		SetXmlAttribute(contact, "email", pContact->email);
+		SetXmlAttribute(contact, "address", pContact->address);
+		SetXmlAttribute(contact, "city", pContact->city);
+		SetXmlAttribute(contact, "state", pContact->state);
+		SetXmlAttribute(contact, "zip", pContact->zip);
+		SetXmlAttribute(contact, "comment", pContact->comment);
+		SetXmlAttribute(contact, "id", pContact->id);
+		SetXmlAttribute(contact, "info", pContact->info);
+		contact.append_attribute("presence").set_value(
+			pContact->presence ? "1" : "0");
+		contact.append_attribute("starred").set_value(
+			pContact->starred ? "1" : "0");
+		contact.append_attribute("directory").set_value(
+			pContact->directory ? "1" : "0");
 	}
 
 	CString filename = accountSettings.pathRoaming;
 	filename.Append(_T("Contacts.xml"));
-	CFile file;
-	CFileException fileException;
-	if (file.Open(filename, CFile::modeCreate | CFile::modeWrite, &fileException)) {
-		CStringA str = "<?xml version=\"1.0\"?>\r\n";
-		str.Append(MSIP::Utf8EncodeUni(xml.GetDoc()));
-		file.Write(str.GetBuffer(), str.GetLength());
-		file.Close();
-	}
+	xml.save_file(
+		filename.GetString(),
+		"  ",
+		pugi::format_default,
+		pugi::encoding_utf8);
 }
 
 void Contacts::ContactsLoad()
 {
 	CString filename = accountSettings.pathRoaming;
 	filename.Append(_T("Contacts.xml"));
-	CFile file;
-	CFileException fileException;
-	if (file.Open(filename, CFile::modeRead, &fileException)) {
-		CStringA data;
-		int i;
-		UINT len = 0;
-		do {
-			LPSTR p = data.GetBuffer(len + 1024);
-			i = file.Read(p + len, 1024);
-			len += i;
-			data.ReleaseBuffer(len);
-		} while (i > 0);
-		file.Close();
-		CMarkup xml;
-		BOOL bResult = xml.SetDoc(MSIP::Utf8DecodeUni(data));
-		if (bResult) {
-			if (xml.FindElem(_T("contacts"))) {
-				while (xml.FindChildElem(_T("contact"))) {
-					xml.IntoElem();
-					Contact contact;
-					contact.name = xml.GetAttrib(_T("name"));
-					contact.number = xml.GetAttrib(_T("number"));
-					contact.firstname = xml.GetAttrib(_T("firstname"));
-					contact.lastname = xml.GetAttrib(_T("lastname"));
-					contact.phone = xml.GetAttrib(_T("phone"));
-					contact.mobile = xml.GetAttrib(_T("mobile"));
-					contact.email = xml.GetAttrib(_T("email"));
-					contact.address = xml.GetAttrib(_T("address"));
-					contact.city = xml.GetAttrib(_T("city"));
-					contact.state = xml.GetAttrib(_T("state"));
-					contact.zip = xml.GetAttrib(_T("zip"));
-					contact.comment = xml.GetAttrib(_T("comment"));
-					contact.id = xml.GetAttrib(_T("id"));
-					contact.info = xml.GetAttrib(_T("info"));
-					CString rab;
-					rab = xml.GetAttrib(_T("presence"));
-					contact.presence = rab == _T("1");
-					rab = xml.GetAttrib(_T("starred"));
-					contact.starred = rab == _T("1");
-					rab = xml.GetAttrib(_T("directory"));
-					contact.directory = rab == _T("1");
-					if (!contact.number.IsEmpty()) {
-						if (!isFiltered(&contact)) {
-							ContactAdd(contact, FALSE, TRUE);
-						}
-					}
-					xml.OutOfElem();
+	const bool fileExists =
+		::GetFileAttributes(filename) != INVALID_FILE_ATTRIBUTES;
+	pugi::xml_document xml;
+	const pugi::xml_parse_result result = xml.load_file(
+		filename.GetString(),
+		pugi::parse_default,
+		pugi::encoding_auto);
+	if (result) {
+		pugi::xml_node root = xml.child("contacts");
+		if (root) {
+			for (pugi::xml_node item : root.children("contact")) {
+				Contact contact;
+				contact.name = GetXmlAttribute(item, "name");
+				contact.number = GetXmlAttribute(item, "number");
+				contact.firstname = GetXmlAttribute(item, "firstname");
+				contact.lastname = GetXmlAttribute(item, "lastname");
+				contact.phone = GetXmlAttribute(item, "phone");
+				contact.mobile = GetXmlAttribute(item, "mobile");
+				contact.email = GetXmlAttribute(item, "email");
+				contact.address = GetXmlAttribute(item, "address");
+				contact.city = GetXmlAttribute(item, "city");
+				contact.state = GetXmlAttribute(item, "state");
+				contact.zip = GetXmlAttribute(item, "zip");
+				contact.comment = GetXmlAttribute(item, "comment");
+				contact.id = GetXmlAttribute(item, "id");
+				contact.info = GetXmlAttribute(item, "info");
+				contact.presence =
+					item.attribute("presence").as_bool(false);
+				contact.starred =
+					item.attribute("starred").as_bool(false);
+				contact.directory =
+					item.attribute("directory").as_bool(false);
+				if (!contact.number.IsEmpty() && !isFiltered(&contact)) {
+					ContactAdd(contact, FALSE, TRUE);
 				}
 			}
 		}
 	}
-	else {
+	else if (!fileExists) {
 		// old
 		CString key;
 		CString val;

@@ -42,6 +42,10 @@ jobs:
         shell: pwsh
         run: python .\build\validate-langpacks.py
 
+      - name: Validate XML compatibility
+        shell: pwsh
+        run: python .\build\test-xml-compat.py
+
       - name: Build 4phone
         shell: pwsh
         run: .\build\build-windows.ps1
