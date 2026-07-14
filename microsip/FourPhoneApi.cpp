@@ -280,7 +280,7 @@ bool CFourPhoneApi::GetExtensions(
 		return false;
 	}
 
-	for (Json::ArrayIndex index = 0; index < root.size(); index++) {
+	for (Json::UInt index = 0; index < root.size(); index++) {
 		const Json::Value& item = root[index];
 		FourPhoneExtension extension;
 		extension.id = JsonString(item["id"]);
@@ -403,7 +403,7 @@ bool CFourPhoneApi::Request(
 	components.dwExtraInfoLength = static_cast<DWORD>(-1);
 
 	if (!WinHttpCrackUrl(url, 0, 0, &components)) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 	if (components.nScheme != INTERNET_SCHEME_HTTPS) {
@@ -433,7 +433,7 @@ bool CFourPhoneApi::Request(
 		WINHTTP_NO_PROXY_BYPASS,
 		0));
 	if (!session.IsValid()) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 
@@ -453,7 +453,7 @@ bool CFourPhoneApi::Request(
 		components.nPort,
 		0));
 	if (!connection.IsValid()) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 
@@ -467,7 +467,7 @@ bool CFourPhoneApi::Request(
 		acceptTypes,
 		WINHTTP_FLAG_SECURE));
 	if (!request.IsValid()) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 	DWORD redirectPolicy = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
@@ -476,7 +476,7 @@ bool CFourPhoneApi::Request(
 		WINHTTP_OPTION_REDIRECT_POLICY,
 		&redirectPolicy,
 		sizeof(redirectPolicy))) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 
@@ -494,7 +494,7 @@ bool CFourPhoneApi::Request(
 		headers,
 		static_cast<DWORD>(-1),
 		WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE)) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 
@@ -510,11 +510,11 @@ bool CFourPhoneApi::Request(
 		requestDataSize,
 		requestDataSize,
 		0)) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 	if (!WinHttpReceiveResponse(request.Get(), NULL)) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 
@@ -526,7 +526,7 @@ bool CFourPhoneApi::Request(
 		&response.statusCode,
 		&statusSize,
 		WINHTTP_NO_HEADER_INDEX)) {
-		SetTransportError(GetLastError());
+		SetTransportError(::GetLastError());
 		return false;
 	}
 	lastStatusCode = response.statusCode;
@@ -535,7 +535,7 @@ bool CFourPhoneApi::Request(
 	for (;;) {
 		DWORD available = 0;
 		if (!WinHttpQueryDataAvailable(request.Get(), &available)) {
-			SetTransportError(GetLastError());
+			SetTransportError(::GetLastError());
 			return false;
 		}
 		if (available == 0) {
@@ -558,7 +558,7 @@ bool CFourPhoneApi::Request(
 		totalSize += downloaded;
 		response.body.ReleaseBuffer(static_cast<int>(totalSize));
 		if (!read) {
-			SetTransportError(GetLastError());
+			SetTransportError(::GetLastError());
 			return false;
 		}
 		if (downloaded == 0) {
@@ -600,7 +600,7 @@ bool CFourPhoneApi::ParseError(const HttpResponse& response)
 			message = JsonString(apiMessage);
 		}
 		else if (apiMessage.isArray() && apiMessage.size() > 0) {
-			message = JsonString(apiMessage[0]);
+			message = JsonString(apiMessage[0u]);
 		}
 		if (message.IsEmpty()) {
 			message = JsonString(root["error"]);

@@ -3345,8 +3345,8 @@ void CmainDlg::UpdateSoundDevicesIds()
 	msip_audio_ring = -2;
 	CString audioOutputDevice = accountSettings.audioOutputDevice;
 	CString audioInputDevice = accountSettings.audioInputDevice;
-	unsigned count = PJMEDIA_AUD_MAX_DEVS;
-	pjmedia_aud_dev_info aud_dev_info[PJMEDIA_AUD_MAX_DEVS];
+	unsigned count = PJMEDIA_AUD_DEV_MAX_DEVS;
+	pjmedia_aud_dev_info aud_dev_info[PJMEDIA_AUD_DEV_MAX_DEVS];
 	pjsua_enum_aud_devs(aud_dev_info, &count);
 	for (unsigned i = 0; i < count; i++)
 	{
