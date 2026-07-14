@@ -40,6 +40,8 @@ CButtonDialer::CButtonDialer()
 	m_map.SetAt(_T("0"), _T(""));
 	m_map.SetAt(_T("*"), _T(""));
 	m_map.SetAt(_T("#"), _T(""));
+	m_trackingMouse = false;
+	m_mouseInside = false;
 }
 
 CButtonDialer::~CButtonDialer()
@@ -51,6 +53,7 @@ CButtonDialer::~CButtonDialer()
 BEGIN_MESSAGE_MAP(CButtonDialer, CButton)
 	ON_WM_THEMECHANGED()
 	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSELEAVE()
 	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
@@ -79,9 +82,6 @@ void CButtonDialer::PreSubclassWindow()
 	lf.lfQuality = CLEARTYPE_QUALITY;
 	m_FontLetters.CreateFontIndirect(&lf);
 
-	DWORD dwStyle = ::GetClassLong(m_hWnd, GCL_STYLE);
-	dwStyle &= ~CS_DBLCLKS;
-	::SetClassLong(m_hWnd, GCL_STYLE, dwStyle);
 }
 
 LRESULT CButtonDialer::OnThemeChanged()
@@ -98,18 +98,30 @@ void CButtonDialer::OnSize(UINT type, int w, int h)
 
 void CButtonDialer::OnMouseMove(UINT nFlags, CPoint point)
 {
-	CRect rect;
-	GetClientRect(&rect);
-	if (rect.PtInRect(point)) {
-		if (GetCapture() != this) {
-			SetCapture();
-			Invalidate();
+	if (!m_trackingMouse) {
+		TRACKMOUSEEVENT tracking = {};
+		tracking.cbSize = sizeof(tracking);
+		tracking.dwFlags = TME_LEAVE;
+		tracking.hwndTrack = m_hWnd;
+		if (TrackMouseEvent(&tracking)) {
+			m_trackingMouse = true;
 		}
 	}
-	else {
-		ReleaseCapture();
+
+	if (!m_mouseInside) {
+		m_mouseInside = true;
 		Invalidate();
 	}
+
+	CButton::OnMouseMove(nFlags, point);
+}
+
+void CButtonDialer::OnMouseLeave()
+{
+	m_trackingMouse = false;
+	m_mouseInside = false;
+	Invalidate();
+	CButton::OnMouseLeave();
 }
 
 void CButtonDialer::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
@@ -123,7 +135,7 @@ void CButtonDialer::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	const UINT state = lpDrawItemStruct->itemState;
 	const bool pressed = (state & ODS_SELECTED) != 0;
 	const bool disabled = (state & ODS_DISABLED) != 0;
-	const bool hovered = GetCapture() == this;
+	const bool hovered = m_mouseInside;
 	COLORREF background = FourPhoneTheme::White();
 	COLORREF border = FourPhoneTheme::Line();
 	if (pressed) {

@@ -20,6 +20,7 @@
 #include "define.h"
 
 #include "AccountDlg.h"
+#include "FourPhoneTheme.h"
 #include "mainDlg.h"
 #include "langpack.h"
 #include "atlrx.h"
@@ -64,6 +65,8 @@ int AccountDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 BOOL AccountDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::PrepareControls(this);
 
     CRect rect;
     GetWindowRect(&rect);
@@ -146,7 +149,6 @@ BEGIN_MESSAGE_MAP(AccountDlg, CDialog)
 	ON_WM_SYSCOMMAND()
 	ON_WM_CLOSE()
 	ON_WM_DESTROY()
-	ON_WM_NCHITTEST()
 	ON_BN_CLICKED(IDCANCEL, &AccountDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDOK, &AccountDlg::OnBnClickedOk)
 	ON_NOTIFY(NM_CLICK, IDC_SYSLINK_SIP_SERVER, &AccountDlg::OnNMClickSyslinkSipServer)
@@ -183,21 +185,6 @@ void AccountDlg::OnSysCommand(UINT nID, LPARAM lParam)
 void AccountDlg::OnClose() 
 {
 	DestroyWindow();
-}
-
-LRESULT AccountDlg::OnNcHitTest(CPoint point)
-{
-	ScreenToClient(&point);
-
-	CRect rc;
-	GetClientRect(&rc);
-
-	//rc.bottom = rc.top + 100; 
-
-	if (rc.PtInRect(point))
-		return HTCAPTION;
-
-	return CDialog::OnNcHitTest(point);
 }
 
 void AccountDlg::OnBnClickedCancel()

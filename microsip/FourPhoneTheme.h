@@ -65,9 +65,11 @@ public:
 protected:
 	virtual void PreSubclassWindow();
 	virtual void DrawItem(LPDRAWITEMSTRUCT drawItem);
+	virtual UINT OnGetDlgCode();
 
 	afx_msg void OnMouseMove(UINT flags, CPoint point);
 	afx_msg LRESULT OnMouseLeave(WPARAM, LPARAM);
+	afx_msg LRESULT OnSetButtonStyle(WPARAM style, LPARAM redraw);
 	afx_msg void OnSetFocus(CWnd* oldWindow);
 	afx_msg void OnKillFocus(CWnd* newWindow);
 
@@ -84,6 +86,7 @@ private:
 	Glyph glyph;
 	bool hot;
 	bool trackingMouse;
+	bool defaultButton;
 };
 
 class CFourPhoneTabCtrl : public CTabCtrl

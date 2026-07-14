@@ -1,0 +1,6 @@
+* whitespace=trailing-space,space-before-tab,cr-at-eol
+
+*.bmp binary
+*.ico binary
+*.png binary
+*.wav binary

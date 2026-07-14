@@ -53,6 +53,7 @@ protected:
 		CWnd* window,
 		UINT controlColor);
 	afx_msg BOOL OnEraseBkgnd(CDC* dc);
+	afx_msg LRESULT OnDpiChanged(WPARAM wParam, LPARAM lParam);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 

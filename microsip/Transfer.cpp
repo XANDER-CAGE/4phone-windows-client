@@ -18,6 +18,7 @@
 
 #include "StdAfx.h"
 #include "Transfer.h"
+#include "FourPhoneTheme.h"
 #include "mainDlg.h"
 #include "langpack.h"
 #include "settings.h"
@@ -43,6 +44,8 @@ int Transfer::OnCreate(LPCREATESTRUCT lpCreateStruct)
 BOOL Transfer::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::PrepareControls(this);
 	TranslateDialog(this->m_hWnd);
 
 	CFont* font = this->GetFont();

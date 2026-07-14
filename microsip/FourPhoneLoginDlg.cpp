@@ -60,16 +60,12 @@ void CFourPhoneLoginDlg::DoDataExchange(CDataExchange* dataExchange)
 	CDialog::DoDataExchange(dataExchange);
 	DDX_Control(dataExchange, IDOK, signInButton);
 	DDX_Control(dataExchange, IDCANCEL, cancelButton);
-	DDX_Control(dataExchange, IDC_4PHONE_CLOSE, closeButton);
 }
 
 BEGIN_MESSAGE_MAP(CFourPhoneLoginDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_ERASEBKGND()
 	ON_WM_CTLCOLOR()
-	ON_WM_NCCALCSIZE()
-	ON_WM_NCHITTEST()
-	ON_BN_CLICKED(IDC_4PHONE_CLOSE, OnCloseButton)
 END_MESSAGE_MAP()
 
 BOOL CFourPhoneLoginDlg::OnInitDialog()
@@ -83,6 +79,9 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 	FourPhoneTheme::CreateFont(this, eyebrowFont, 8, FW_BOLD);
 	FourPhoneTheme::ApplyFontToChildren(this, &uiFont);
 	FourPhoneTheme::PrepareControls(this);
+	if (langPack.rtl) {
+		ModifyStyleEx(0, WS_EX_LAYOUTRTL);
+	}
 	if (whiteBrush.GetSafeHandle() == NULL) {
 		whiteBrush.CreateSolidBrush(FourPhoneTheme::White());
 	}
@@ -92,9 +91,6 @@ BOOL CFourPhoneLoginDlg::OnInitDialog()
 	signInButton.SetVariant(CFourPhoneButton::Primary);
 	signInButton.SetGlyph(CFourPhoneButton::GlyphArrowRight);
 	cancelButton.SetVariant(CFourPhoneButton::Secondary);
-	closeButton.SetVariant(CFourPhoneButton::CaptionClose);
-	closeButton.SetGlyph(CFourPhoneButton::GlyphClose);
-	closeButton.SetWindowText(Translate(_T("Close")));
 	GetDlgItem(IDC_4PHONE_HEADING)->SetWindowText(
 		Translate(_T("Sign in to 4phone")));
 	GetDlgItem(IDC_4PHONE_EYEBROW)->SetWindowText(
@@ -206,36 +202,10 @@ HBRUSH CFourPhoneLoginDlg::OnCtlColor(
 	return brush;
 }
 
-void CFourPhoneLoginDlg::OnNcCalcSize(
-	BOOL calculateValidRects,
-	NCCALCSIZE_PARAMS*)
-{
-	if (!calculateValidRects) {
-		return;
-	}
-}
-
-LRESULT CFourPhoneLoginDlg::OnNcHitTest(CPoint point)
-{
-	CPoint local(point);
-	ScreenToClient(&local);
-	CRect headerUnits(0, 0, 0, 43);
-	MapDialogRect(headerUnits);
-	if (local.y >= 0 && local.y < headerUnits.bottom) {
-		CRect closeBounds;
-		closeButton.GetWindowRect(closeBounds);
-		ScreenToClient(closeBounds);
-		if (!closeBounds.PtInRect(local)) {
-			return HTCAPTION;
-		}
-	}
-	return HTCLIENT;
-}
-
-void CFourPhoneLoginDlg::OnCloseButton()
+void CFourPhoneLoginDlg::OnCancel()
 {
 	if (!requestInProgress) {
-		EndDialog(IDCANCEL);
+		CDialog::OnCancel();
 	}
 }
 
@@ -488,7 +458,6 @@ void CFourPhoneLoginDlg::SetBusy(bool busy)
 	requestInProgress = busy;
 	GetDlgItem(IDOK)->EnableWindow(!busy);
 	GetDlgItem(IDCANCEL)->EnableWindow(!busy);
-	GetDlgItem(IDC_4PHONE_CLOSE)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_EMAIL)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_PASSWORD)->EnableWindow(!busy);
 	GetDlgItem(IDC_4PHONE_CODE)->EnableWindow(!busy);

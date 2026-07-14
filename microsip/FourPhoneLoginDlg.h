@@ -25,6 +25,7 @@ public:
 protected:
 	virtual BOOL OnInitDialog();
 	virtual void OnOK();
+	virtual void OnCancel();
 	virtual void DoDataExchange(CDataExchange* dataExchange);
 	afx_msg void OnPaint();
 	afx_msg BOOL OnEraseBkgnd(CDC* dc);
@@ -32,11 +33,6 @@ protected:
 		CDC* dc,
 		CWnd* window,
 		UINT controlColor);
-	afx_msg void OnNcCalcSize(
-		BOOL calculateValidRects,
-		NCCALCSIZE_PARAMS* parameters);
-	afx_msg LRESULT OnNcHitTest(CPoint point);
-	afx_msg void OnCloseButton();
 
 	DECLARE_MESSAGE_MAP()
 
@@ -70,7 +66,6 @@ private:
 	std::vector<FourPhoneExtension> extensions;
 	CFourPhoneButton signInButton;
 	CFourPhoneButton cancelButton;
-	CFourPhoneButton closeButton;
 	CFont uiFont;
 	CFont headingFont;
 	CFont eyebrowFont;

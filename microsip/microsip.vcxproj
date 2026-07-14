@@ -129,7 +129,6 @@
     <Manifest />
     <Manifest />
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -162,7 +161,6 @@
     <Manifest />
     <Manifest />
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -200,7 +198,6 @@
     <Manifest />
     <Manifest />
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -234,7 +231,6 @@
     <Manifest />
     <Manifest />
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -354,26 +350,17 @@
     <ClInclude Include="Transfer.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\active.ico" />
-    <Image Include="res\away.ico" />
-    <Image Include="res\blank.ico" />
-    <Image Include="res\busy.ico" />
-    <Image Include="res\callin.ico" />
-    <Image Include="res\callmiss.ico" />
-    <Image Include="res\callout.ico" />
-    <Image Include="res\close.ico" />
-    <Image Include="res\close2.ico" />
-    <Image Include="res\error.ico" />
+    <Image Include="res\4phone.ico" />
+    <Image Include="res\active_green.ico" />
+    <Image Include="res\active_grey.ico" />
+    <Image Include="res\active_red.ico" />
+    <Image Include="res\active_yellow.ico" />
+    <Image Include="res\call_in.ico" />
+    <Image Include="res\call_miss.ico" />
+    <Image Include="res\call_out.ico" />
     <Image Include="res\exit.ico" />
-    <Image Include="res\icon1.ico" />
-    <Image Include="res\icon2.ico" />
-    <Image Include="res\inactive.ico" />
-    <Image Include="res\microsip.ico" />
-    <Image Include="res\offline.ico" />
-    <Image Include="res\online.ico" />
-    <Image Include="res\ringing.ico" />
-    <Image Include="res\toolbar1.bmp" />
-    <Image Include="res\unknown.ico" />
+    <Image Include="res\tray_inactive.ico" />
+    <Image Include="res\tray_missed.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\dialog.rc2" />

@@ -1101,6 +1101,27 @@ Saqlangan 4phone seansi buzilgan
 [Interface language]
 Interfeys tili
 
+[Check for updates]
+Yangilanishlarni tekshirish
+
+[Updates]
+Yangilanishlar
+
+[Every launch]
+Har ishga tushganda
+
+[Every day]
+Har kuni
+
+[Every week]
+Har hafta
+
+[Every month]
+Har oy
+
+[Every three months]
+Har uch oyda
+
 [The interface language will change after restarting 4phone.]
 Interfeys tili 4phone qayta ishga tushirilgandan keyin o'zgaradi.
 
@@ -1226,24 +1247,3 @@ Qo'ng'iroqni o'tkazish
 
 [Send]
 Yuborish
-
-[Check for updates]
-Yangilanishlarni tekshirish
-
-[Updates]
-Yangilanishlar
-
-[Every launch]
-Har ishga tushganda
-
-[Every day]
-Har kuni
-
-[Every week]
-Har hafta
-
-[Every month]
-Har oy
-
-[Every three months]
-Har uch oyda

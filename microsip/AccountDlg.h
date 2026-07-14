@@ -52,7 +52,6 @@ Account m_Account1;
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnClose();
-	afx_msg LRESULT OnNcHitTest(CPoint point);
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnNMClickSyslinkDelete(NMHDR *pNMHDR, LRESULT *pResult);

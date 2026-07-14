@@ -62,6 +62,8 @@ protected:
 	CMapStringToString m_map;
 	HTHEME m_hTheme; 
 	int dpiY;
+	bool m_trackingMouse;
+	bool m_mouseInside;
 
 	void OpenTheme() { m_hTheme = OpenThemeData(m_hWnd, L"Button"); }
 	void CloseTheme() {
@@ -72,6 +74,7 @@ protected:
 	virtual void PreSubclassWindow();
 	afx_msg LRESULT OnThemeChanged();
 	afx_msg void OnMouseMove(UINT,CPoint);
+	afx_msg void OnMouseLeave();
 	afx_msg void OnSize(UINT type, int w, int h);
 };
 

@@ -43,6 +43,30 @@ namespace
 		return TRUE;
 	}
 
+	UINT GetWindowDpi(HWND window)
+	{
+		typedef UINT(WINAPI* GetDpiForWindowFunction)(HWND);
+		static GetDpiForWindowFunction getDpiForWindow =
+			reinterpret_cast<GetDpiForWindowFunction>(
+				GetProcAddress(
+					GetModuleHandle(_T("user32.dll")),
+					"GetDpiForWindow"));
+		if (window != NULL && getDpiForWindow != NULL) {
+			const UINT dpi = getDpiForWindow(window);
+			if (dpi != 0) {
+				return dpi;
+			}
+		}
+
+		UINT dpi = 96;
+		HDC dc = ::GetDC(window);
+		if (dc != NULL) {
+			dpi = static_cast<UINT>(GetDeviceCaps(dc, LOGPIXELSY));
+			::ReleaseDC(window, dc);
+		}
+		return dpi;
+	}
+
 	void DrawRoundRect(
 		CDC& dc,
 		const CRect& bounds,
@@ -120,13 +144,10 @@ namespace FourPhoneTheme
 
 	int Scale(HWND window, int value)
 	{
-		UINT dpi = 96;
-		HDC dc = ::GetDC(window);
-		if (dc != NULL) {
-			dpi = static_cast<UINT>(GetDeviceCaps(dc, LOGPIXELSY));
-			::ReleaseDC(window, dc);
-		}
-		return MulDiv(value, static_cast<int>(dpi), 96);
+		return MulDiv(
+			value,
+			static_cast<int>(GetWindowDpi(window)),
+			96);
 	}
 
 	bool CreateFont(
@@ -274,12 +295,14 @@ CFourPhoneButton::CFourPhoneButton()
 	, glyph(GlyphNone)
 	, hot(false)
 	, trackingMouse(false)
+	, defaultButton(false)
 {
 }
 
 BEGIN_MESSAGE_MAP(CFourPhoneButton, CButton)
 	ON_WM_MOUSEMOVE()
 	ON_MESSAGE(WM_MOUSELEAVE, OnMouseLeave)
+	ON_MESSAGE(BM_SETSTYLE, OnSetButtonStyle)
 	ON_WM_SETFOCUS()
 	ON_WM_KILLFOCUS()
 END_MESSAGE_MAP()
@@ -302,8 +325,20 @@ void CFourPhoneButton::SetGlyph(Glyph value)
 
 void CFourPhoneButton::PreSubclassWindow()
 {
+	defaultButton =
+		(GetStyle() & BS_TYPEMASK) == BS_DEFPUSHBUTTON;
 	ModifyStyle(BS_TYPEMASK, BS_OWNERDRAW);
 	CButton::PreSubclassWindow();
+}
+
+UINT CFourPhoneButton::OnGetDlgCode()
+{
+	UINT code = CButton::OnGetDlgCode();
+	code &= ~(DLGC_DEFPUSHBUTTON | DLGC_UNDEFPUSHBUTTON);
+	code |= defaultButton
+		? DLGC_DEFPUSHBUTTON
+		: DLGC_UNDEFPUSHBUTTON;
+	return code;
 }
 
 void CFourPhoneButton::DrawItem(LPDRAWITEMSTRUCT drawItem)
@@ -371,7 +406,7 @@ void CFourPhoneButton::DrawItem(LPDRAWITEMSTRUCT drawItem)
 		background = pressed
 			? FourPhoneTheme::BrandSurface()
 			: (hot ? RGB(248, 252, 250) : FourPhoneTheme::White());
-		border = focused
+		border = focused || defaultButton
 			? FourPhoneTheme::Brand()
 			: (hot ? RGB(183, 217, 202) : FourPhoneTheme::Line());
 		text = hot ? FourPhoneTheme::BrandDark() : FourPhoneTheme::Ink();
@@ -527,6 +562,17 @@ LRESULT CFourPhoneButton::OnMouseLeave(WPARAM, LPARAM)
 	trackingMouse = false;
 	hot = false;
 	Invalidate();
+	return 0;
+}
+
+LRESULT CFourPhoneButton::OnSetButtonStyle(WPARAM style, LPARAM redraw)
+{
+	defaultButton =
+		(static_cast<UINT>(style) & BS_TYPEMASK) ==
+		BS_DEFPUSHBUTTON;
+	if (redraw != FALSE) {
+		Invalidate();
+	}
 	return 0;
 }
 

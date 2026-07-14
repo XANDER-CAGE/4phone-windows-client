@@ -18,6 +18,7 @@
 
 #include "StdAfx.h"
 #include "ShortcutsDlg.h"
+#include "FourPhoneTheme.h"
 #include "mainDlg.h"
 #include "settings.h"
 #include "langpack.h"
@@ -79,6 +80,8 @@ int ShortcutsDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 BOOL ShortcutsDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+	FourPhoneTheme::ApplyWindowChrome(GetSafeHwnd());
+	FourPhoneTheme::PrepareControls(this);
 
 	TranslateDialog(this->m_hWnd);
 

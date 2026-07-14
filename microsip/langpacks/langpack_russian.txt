@@ -1101,6 +1101,27 @@ Windows не смог защитить SIP-пароль. Настройки не
 [Interface language]
 Язык интерфейса
 
+[Check for updates]
+Проверять обновления
+
+[Updates]
+Обновления
+
+[Every launch]
+При каждом запуске
+
+[Every day]
+Каждый день
+
+[Every week]
+Каждую неделю
+
+[Every month]
+Каждый месяц
+
+[Every three months]
+Каждые три месяца
+
 [The interface language will change after restarting 4phone.]
 Язык интерфейса изменится после перезапуска 4phone.
 
@@ -1226,24 +1247,3 @@ SIP-INFO
 
 [Send]
 Отправить
-
-[Check for updates]
-Проверять обновления
-
-[Updates]
-Обновления
-
-[Every launch]
-При каждом запуске
-
-[Every day]
-Каждый день
-
-[Every week]
-Каждую неделю
-
-[Every month]
-Каждый месяц
-
-[Every three months]
-Каждые три месяца

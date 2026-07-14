@@ -38,6 +38,12 @@ jobs:
             _deps/vcpkg_installed
           key: 4phone-win32-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'build/**') }}
 
+      - name: Validate generated brand assets
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+          python .\build\generate-brand-assets.py --check
+
       - name: Validate language packs
         shell: pwsh
         run: python .\build\validate-langpacks.py

@@ -36,7 +36,7 @@
 
 #define _GLOBAL_DIALER_WIDTH 216
 
-#define _GLOBAL_ICON "res\\microsip.ico"
+#define _GLOBAL_ICON "res\\4phone.ico"
 #define _GLOBAL_ICON_INACTIVE "res\\tray_inactive.ico"
 
 #define _GLOBAL_HEIGHT1 0

@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CBaseDialog, CDialog)
 	ON_WM_SIZE()
 	ON_WM_CTLCOLOR()
 	ON_WM_ERASEBKGND()
+	ON_MESSAGE(WM_DPICHANGED, OnDpiChanged)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -226,6 +227,26 @@ BOOL CBaseDialog::OnInitDialog()
 	m_szInitial = rcClient.Size();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
+}
+
+LRESULT CBaseDialog::OnDpiChanged(WPARAM, LPARAM lParam)
+{
+	const RECT* suggested = reinterpret_cast<const RECT*>(lParam);
+	if (suggested != NULL) {
+		SetWindowPos(
+			NULL,
+			suggested->left,
+			suggested->top,
+			suggested->right - suggested->left,
+			suggested->bottom - suggested->top,
+			SWP_NOZORDER | SWP_NOACTIVATE);
+	}
+
+	FourPhoneTheme::CreateFont(this, themeFont, 9);
+	FourPhoneTheme::ApplyFontToChildren(this, &themeFont);
+	FourPhoneTheme::PrepareControls(this);
+	Invalidate(TRUE);
+	return 0;
 }
 
 HBRUSH CBaseDialog::OnCtlColor(

@@ -69,9 +69,6 @@ public:
 	bool m_startMinimized;
 	CFourPhoneTabCtrl m_MainTab;
 	CFourPhoneButton m_ButtonMenu;
-	CFourPhoneButton m_ButtonMinimize;
-	CFourPhoneButton m_ButtonMaximize;
-	CFourPhoneButton m_ButtonClose;
 	SettingsDlg* settingsDlg;
 	bool shortcutsEnabled;
 	bool shortcutsBottom;
@@ -236,16 +233,10 @@ public:
 	afx_msg BOOL OnQueryEndSession();
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedMenu();
-	afx_msg void OnBnClickedMinimize();
-	afx_msg void OnBnClickedMaximize();
-	afx_msg void OnBnClickedCloseButton();
 	afx_msg void OnClose();
 	afx_msg void OnPaint();
 	afx_msg BOOL OnEraseBkgnd(CDC* dc);
-	afx_msg void OnNcCalcSize(
-		BOOL calculateValidRects,
-		NCCALCSIZE_PARAMS* parameters);
-	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg LRESULT OnDpiChanged(WPARAM wParam, LPARAM lParam);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd *pWnd, UINT nCtlColor);
 	afx_msg void OnContextMenu(CWnd *pWnd, CPoint point );
 	afx_msg BOOL OnDeviceChange(UINT nEventType, DWORD_PTR dwData);
@@ -288,8 +279,6 @@ public:
 #endif
 	afx_msg	void OnUpdatePane(CCmdUI* pCmdUI);
 
-private:
-	void UpdateCaptionButtons();
 };
 
 extern CmainDlg *mainDlg;
