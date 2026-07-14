@@ -51,7 +51,7 @@ static LPCTSTR updateIntervalValues[] = {
 	_T("never"),
 };
 
-static LPCTSTR updateIntervalLabels[] = {
+static CString updateIntervalLabels[] = {
 	_T("Every launch"),
 	_T("Every day"),
 	_T("Every week"),
@@ -455,7 +455,8 @@ BOOL SettingsDlg::OnInitDialog()
 	combobox = (CComboBox*)GetDlgItem(IDC_SETTINGS_UPDATES_INTERVAL);
 	int updateSelection = 2;
 	for (i = 0; i < _countof(updateIntervalValues); ++i) {
-		combobox->AddString(Translate(updateIntervalLabels[i]));
+		combobox->AddString(
+			Translate(updateIntervalLabels[i].GetBuffer()));
 		if (accountSettings.updatesInterval == updateIntervalValues[i]) {
 			updateSelection = i;
 		}

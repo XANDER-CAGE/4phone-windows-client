@@ -35,7 +35,8 @@ namespace
 		const char* name,
 		const CString& value)
 	{
-		const CStringA utf8 = MSIP::Utf8EncodeUni(value);
+		CString source(value);
+		const CStringA utf8 = MSIP::Utf8EncodeUni(source);
 		node.append_attribute(name).set_value(utf8.GetString());
 	}
 }
