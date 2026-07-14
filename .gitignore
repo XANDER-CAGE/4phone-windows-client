@@ -1,0 +1,15 @@
+_deps/
+.vs/
+
+microsip/Debug/
+microsip/Release/
+microsip/x64/
+microsip/*.user
+
+*.exe
+*.dll
+*.lib
+*.obj
+*.pdb
+*.ilk
+*.suo

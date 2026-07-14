@@ -1,0 +1,59 @@
+name: Build 4phone for Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/build-windows.yml"
+      - "build/**"
+      - "microsip/**"
+      - "vcpkg.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-4phone-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-win32:
+    name: Release Win32
+    runs-on: windows-2022
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Cache pinned dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            _deps/pjproject
+            _deps/vcpkg
+            _deps/vcpkg_installed
+          key: 4phone-win32-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'build/**') }}
+
+      - name: Build 4phone
+        shell: pwsh
+        run: .\build\build-windows.ps1
+
+      - name: Create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $exe = "microsip\Release\4phone.exe"
+          $hash = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
+          "$hash  4phone.exe" | Set-Content -Encoding ascii "$exe.sha256"
+
+      - name: Upload executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: 4phone-win32-${{ github.run_number }}
+          path: |
+            microsip/Release/4phone.exe
+            microsip/Release/4phone.exe.sha256
+          if-no-files-found: error
+          retention-days: 30
