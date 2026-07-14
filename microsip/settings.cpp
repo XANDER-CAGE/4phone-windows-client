@@ -724,11 +724,6 @@ void AccountSettings::Init()
         language != _T("en")) {
         language = DetectInterfaceLanguage();
     }
-    ptr = str.GetBuffer(255);
-    GetPrivateProfileString(section, _T("checkUpdatesTime"), NULL, ptr, 256, iniFile);
-    str.ReleaseBuffer();
-    checkUpdatesTime = _wtoi(str);
-
     // load ini settings
 
     ptr = str.GetBuffer(255);
@@ -1352,8 +1347,6 @@ void AccountSettings::SettingsSave()
     WritePrivateProfileString(section, _T("networkChanges"), networkChanges ? _T("1") : _T("0"), iniFile);
     WritePrivateProfileString(section, _T("updatesInterval"), updatesInterval, iniFile);
     WritePrivateProfileString(section, _T("language"), language, iniFile);
-    str.Format(_T("%d"), checkUpdatesTime);
-    WritePrivateProfileString(section, _T("checkUpdatesTime"), str, iniFile);
 
     // save ini settings
 

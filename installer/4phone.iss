@@ -61,6 +61,7 @@ Name: "{localappdata}\{#AppName}"; Flags: uninsneveruninstall
 
 [Files]
 Source: "{#SourceDir}\{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\WinSparkle.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\langpack_russian.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\langpack_uzbek.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; DestName: "LICENSE.txt"; Flags: ignoreversion

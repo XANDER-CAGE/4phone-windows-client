@@ -215,6 +215,7 @@ finally {
 $outputDirectory = Join-Path $MicroSipRoot $Configuration
 $requiredOutputs = @(
     "4phone.exe",
+    "WinSparkle.dll",
     "langpack_russian.txt",
     "langpack_uzbek.txt"
 )

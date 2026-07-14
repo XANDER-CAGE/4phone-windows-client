@@ -272,8 +272,8 @@ public:
 	afx_msg void OnMuteInput();
 	afx_msg void OnMuteOutput();
 	afx_msg void OnCheckUpdates();
-	afx_msg void CheckUpdates();
-	afx_msg LRESULT OnUpdateCheckerLoaded(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUpdateCanShutdown(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnUpdateRequestShutdown(WPARAM wParam, LPARAM lParam);
 #ifdef _GLOBAL_VIDEO
 	afx_msg void createPreviewWin();
 #endif

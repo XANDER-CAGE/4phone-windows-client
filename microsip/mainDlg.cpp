@@ -32,6 +32,7 @@
 #include "Hid.h"
 #include "CMask.h"
 #include "FourPhoneProvisioning.h"
+#include "FourPhoneUpdateService.h"
 #include <pugixml.hpp>
 
 #include <winuser.h>
@@ -62,8 +63,6 @@ CmainDlg* mainDlg;
 
 static UINT WM_SHELLHOOKMESSAGE;
 static UINT WM_TASKBARRESTARTMESSAGE;
-
-static bool updateCheckerShow;
 
 static UINT BASED_CODE indicators[] =
 {
@@ -1661,6 +1660,7 @@ CmainDlg::~CmainDlg(void)
 
 void CmainDlg::OnDestroy()
 {
+	CFourPhoneUpdateService::Cleanup();
 	if (mmNotificationClient) {
 		delete mmNotificationClient;
 	}
@@ -1743,7 +1743,12 @@ BEGIN_MESSAGE_MAP(CmainDlg, CBaseDialog)
 	ON_COMMAND(ID_4PHONE_LOGOUT, OnFourPhoneLogout)
 	ON_COMMAND_RANGE(ID_CUSTOM_RANGE, ID_CUSTOM_RANGE + 99, OnMenuCustomRange)
 	ON_COMMAND(ID_UPDATES, OnCheckUpdates)
-	ON_MESSAGE(UM_UPDATE_CHECKER_LOADED, OnUpdateCheckerLoaded)
+	ON_MESSAGE(
+		WM_4PHONE_UPDATE_CAN_SHUTDOWN,
+		OnUpdateCanShutdown)
+	ON_MESSAGE(
+		WM_4PHONE_UPDATE_REQUEST_SHUTDOWN,
+		OnUpdateRequestShutdown)
 	ON_COMMAND(ID_SETTINGS, OnMenuSettings)
 	ON_COMMAND(ID_SHORTCUTS, OnMenuShortcuts)
 	ON_COMMAND(ID_ALWAYS_ON_TOP, OnMenuAlwaysOnTop)
@@ -1809,8 +1814,6 @@ CmainDlg::CmainDlg(CWnd * pParent /*=NULL*/)
 
 	this->m_hWnd = NULL;
 	mmNotificationClient = NULL;
-	updateCheckerShow = false;
-
 	pageCalls = NULL;
 	pageContacts = NULL;
 	mainDlg = this;
@@ -2230,6 +2233,13 @@ void CmainDlg::OnCreated()
 	if (WM_SHELLHOOKMESSAGE) {
 		RegisterShellHookWindow(m_hWnd);
 	}
+	if (!CFourPhoneUpdateService::Initialize(
+		GetSafeHwnd(),
+		accountSettings.updatesInterval,
+		accountSettings.language)) {
+		OutputDebugString(
+			_T("4phone: failed to initialize WinSparkle\r\n"));
+	}
 }
 
 void CmainDlg::TrayIconUpdateTip()
@@ -2567,6 +2577,10 @@ void CmainDlg::MainPopupMenu(bool isMenuButton)
 			: 0),
 		ID_LOG,
 		Translate(_T("View Log File")));
+	tracker->AppendMenu(
+		MF_STRING,
+		ID_UPDATES,
+		Translate(_T("Check for updates")));
 
 	tracker->AppendMenu(MF_SEPARATOR);
 	str = Translate(_T("Visit Website"));
@@ -2999,35 +3013,6 @@ void CmainDlg::PJCreateRaw()
 	if (accountSettings.audioCodecs.IsEmpty())
 	{
 		accountSettings.audioCodecs = _T(_GLOBAL_CODECS_ENABLED);
-	}
-
-	// check updates
-	if (accountSettings.updatesInterval != _T("never"))
-	{
-		CTime t = CTime::GetCurrentTime();
-		time_t time = t.GetTime();
-		int days;
-		if (accountSettings.updatesInterval == _T("daily"))
-		{
-			days = 1;
-		}
-		else if (accountSettings.updatesInterval == _T("monthly"))
-		{
-			days = 30;
-		}
-		else if (accountSettings.updatesInterval == _T("quarterly"))
-		{
-			days = 90;
-		}
-		else
-		{
-			days = 7;
-		}
-		if (accountSettings.updatesInterval == _T("always") || accountSettings.checkUpdatesTime + days * 86400 < time) {
-			CheckUpdates();
-			accountSettings.checkUpdatesTime = time;
-			accountSettings.SettingsSave();
-		}
 	}
 
 	// pj create
@@ -5742,83 +5727,18 @@ void CmainDlg::OpenTransferDlg(CWnd * pParent, msip_action action, pjsua_call_id
 
 void CmainDlg::OnCheckUpdates()
 {
-	updateCheckerShow = true;
-	CheckUpdates();
+	CFourPhoneUpdateService::CheckForUpdates();
 }
 
-void CmainDlg::CheckUpdates()
+LRESULT CmainDlg::OnUpdateCanShutdown(WPARAM, LPARAM)
 {
-	accountSettings.updatesInterval = _T("never");
-	if (updateCheckerShow) {
-		AfxMessageBox(
-			Translate(_T(
-				"Automatic 4phone client updates are not configured yet")),
-			MB_OK | MB_ICONINFORMATION);
-		updateCheckerShow = false;
-	}
+	return messagesDlg == NULL ||
+		messagesDlg->GetCallsCount(true) == 0;
 }
 
-LRESULT CmainDlg::OnUpdateCheckerLoaded(WPARAM wParam, LPARAM lParam)
+LRESULT CmainDlg::OnUpdateRequestShutdown(WPARAM, LPARAM)
 {
-	bool found = false;
-	URLGetAsyncData* response = (URLGetAsyncData*)wParam;
-	if (response->statusCode == 200) {
-		if (!response->body.IsEmpty() && response->body.Left(4) == "http") {
-			int pos = response->body.Find("\n");
-			if (pos > 0) {
-				CStringA url = response->body.Left(pos);
-				url.Trim();
-				bool allowed = false;
-				DWORD dwServiceType;
-				CString strServer;
-				CString strObject;
-				INTERNET_PORT nPort;
-				if (AfxParseURL(CString(url), dwServiceType, strServer, strObject, nPort) && dwServiceType == AFX_INET_SERVICE_HTTPS && strServer.Right(13) == _T(".microsip.org")) {
-					allowed = true;
-				}
-				int pos1 = response->body.Find("\n", pos + 1);
-				if (allowed && pos1 > pos) {
-					CStringA version = response->body.Mid(pos, pos1 - pos);
-					version.Trim();
-					CString info = MSIP::Utf8DecodeUni(response->body.Mid(pos1 + 1));
-					info.Trim();
-					CStringA our = _GLOBAL_VERSION;
-					int count = version.Replace(".", ".");
-					if (count < 4) {
-						int i = count;
-						while (i < 3) {
-							version.Append(".0");
-							i++;
-						}
-						count = our.Replace(".", ".");
-						i = count;
-						while (i < 3) {
-							our.Append(".0");
-							i++;
-						}
-						unsigned long ia = inet_addr(version.GetBuffer());
-						if (ia != -1 && htonl(ia) > htonl(inet_addr(our.GetBuffer()))) {
-							CString caption;
-							caption.Format(_T("%s %s"), _T(_GLOBAL_NAME_VISIBLE), Translate(_T("Update Available")));
-							CString message = Translate(_T("Do you want to update now?"));
-							if (!info.IsEmpty()) {
-								message.AppendFormat(_T("\r\n\r\n%s"), info);
-							}
-							found = true;
-							if (::MessageBox(this->m_hWnd, message, caption, MB_YESNO | MB_ICONQUESTION) == IDYES) {
-								MSIP::OpenURL(MSIP::Utf8DecodeUni(url));
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-	delete response;
-	if (updateCheckerShow && !found) {
-		MessageBox(_T("No new version found"), _T(""), MB_ICONINFORMATION);
-	}
-	updateCheckerShow = false;
+	PostMessage(WM_CLOSE, 0, 0);
 	return 0;
 }
 

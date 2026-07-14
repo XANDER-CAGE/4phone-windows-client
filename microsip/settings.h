@@ -150,7 +150,6 @@ struct AccountSettings {
 	CString appDataLocal;
 	CString appDataLocalRoot;
 
-	int checkUpdatesTime;
 
 	bool minimized;
 

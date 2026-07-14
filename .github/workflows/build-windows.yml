@@ -95,6 +95,7 @@ jobs:
             microsip/Release/4phone-setup.exe.sha256
             microsip/Release/4phone.exe
             microsip/Release/4phone.exe.sha256
+            microsip/Release/WinSparkle.dll
             microsip/Release/langpack_russian.txt
             microsip/Release/langpack_uzbek.txt
           if-no-files-found: error

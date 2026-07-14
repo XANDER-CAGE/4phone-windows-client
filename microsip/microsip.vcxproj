@@ -117,7 +117,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;WinSparkle.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x86);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
@@ -153,7 +153,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;WinSparkle.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x64);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalOptions>/OPT:NOLBR %(AdditionalOptions)</AdditionalOptions>
@@ -184,7 +184,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;WinSparkle.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x86);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -220,7 +220,7 @@
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>opus.lib;pugixml.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opus.lib;pugixml.lib;WinSparkle.lib;Wtsapi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(PjProjectRoot)\lib;$(FourPhoneDepsRoot)\lib;$(WindowsSDK_LibraryPath_x64);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -256,6 +256,7 @@
     <ClCompile Include="FourPhoneLoginDlg.cpp" />
     <ClCompile Include="FourPhoneProvisioning.cpp" />
     <ClCompile Include="FourPhoneTheme.cpp" />
+    <ClCompile Include="FourPhoneUpdateService.cpp" />
     <ClCompile Include="global.cpp" />
     <ClCompile Include="IconButton.cpp" />
     <ClCompile Include="jumplist.cpp" />
@@ -315,6 +316,7 @@
     <ClInclude Include="FourPhoneLoginDlg.h" />
     <ClInclude Include="FourPhoneProvisioning.h" />
     <ClInclude Include="FourPhoneTheme.h" />
+    <ClInclude Include="FourPhoneUpdateService.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="IconButton.h" />
     <ClInclude Include="jumplist.h" />
@@ -373,10 +375,17 @@
   <ItemGroup>
     <FourPhoneLanguagePack Include="langpacks\langpack_russian.txt" />
     <FourPhoneLanguagePack Include="langpacks\langpack_uzbek.txt" />
+    <FourPhoneRuntimeDependency Include="$(FourPhoneDepsRoot)\bin\WinSparkle.dll" />
   </ItemGroup>
   <Target Name="CopyFourPhoneLanguagePacks" AfterTargets="Build">
     <Copy
       SourceFiles="@(FourPhoneLanguagePack)"
+      DestinationFolder="$(TargetDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CopyFourPhoneRuntimeDependencies" AfterTargets="Build">
+    <Copy
+      SourceFiles="@(FourPhoneRuntimeDependency)"
       DestinationFolder="$(TargetDir)"
       SkipUnchangedFiles="true" />
   </Target>

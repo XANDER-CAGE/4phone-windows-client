@@ -73,7 +73,6 @@
 #define _GLOBAL_MENU_WEBSITE "https://4phone.uz/"
 #define _GLOBAL_MENU_HELP "https://4phone.uz/"
 #define _GLOBAL_HELP_WEBSITE "https://4phone.uz/"
-#define _GLOBAL_URL_CHECK_VERSION "https://4phone.uz/client/check-version?ver="
 
 #define _GLOBAL_EC_DEFAULT "1"
 

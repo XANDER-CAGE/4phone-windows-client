@@ -18,6 +18,7 @@
 
 #pragma once
 #define _GLOBAL_VERSION "3.22.3-4phone.1"
+#define _GLOBAL_BUILD_VERSION "3.22.3.6"
 #define _GLOBAL_VERSION_COMMA 3,22,3,6
 #define _GLOBAL_KEY "*********"
 #define _GLOBAL_NAME "4phone"
