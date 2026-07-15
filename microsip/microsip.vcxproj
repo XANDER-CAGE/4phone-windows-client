@@ -129,6 +129,7 @@
     <Manifest />
     <Manifest />
     <Manifest>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -161,6 +162,7 @@
     <Manifest />
     <Manifest />
     <Manifest>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -198,6 +200,7 @@
     <Manifest />
     <Manifest />
     <Manifest>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
@@ -231,6 +234,7 @@
     <Manifest />
     <Manifest />
     <Manifest>
+      <EnableDpiAwareness>false</EnableDpiAwareness>
       <AdditionalManifestFiles>custom.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>

@@ -227,4 +227,6 @@ foreach ($requiredOutput in $requiredOutputs) {
 }
 
 $executablePath = Join-Path $outputDirectory "4phone.exe"
+& (Join-Path $PSScriptRoot "validate-pe-manifest.ps1") `
+    -ExecutablePath $executablePath
 Write-Host "Сборка 4phone завершена: $executablePath"
