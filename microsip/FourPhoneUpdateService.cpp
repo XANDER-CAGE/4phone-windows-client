@@ -11,7 +11,7 @@ namespace
 	const char* const kAppcastUrl =
 		"https://api.4phone.uz/api/client-updates/windows/appcast.xml";
 	const char* const kEd25519PublicKey =
-		"EHnmlFUf18mWMI0iXr6qdiP4P0O6+PRsz3jESqE2hRI=";
+		"XtKYATHeWdkVlkLbSrEL7VI6EqPTuET364CibEIEH/g=";
 
 	std::atomic<HWND> gOwnerWindow(NULL);
 	std::atomic<bool> gInitialized(false);

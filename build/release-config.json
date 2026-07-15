@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "repository": "XANDER-CAGE/4phone-windows-client",
+  "expectedAuthenticodePublisher": "SignPath Foundation",
+  "winSparkle": {
+    "version": "0.9.3",
+    "archiveUrl": "https://github.com/vslavik/winsparkle/releases/download/v0.9.3/WinSparkle-0.9.3.zip",
+    "archiveSha256": "745985f41d2ab26b2d5a1cf87d76e4ed851039db19038e50610eb25ea0b73772",
+    "ed25519PublicKey": "XtKYATHeWdkVlkLbSrEL7VI6EqPTuET364CibEIEH/g="
+  },
+  "innoSetup": {
+    "version": "6.7.3",
+    "installerUrl": "https://github.com/jrsoftware/issrc/releases/download/is-6_7_3/innosetup-6.7.3.exe",
+    "installerSha256": "9c73c3bae7ed48d44112a0f48e66742c00090bdb5bef71d9d3c056c66e97b732"
+  },
+  "sbomTool": {
+    "version": "4.1.5",
+    "executableUrl": "https://github.com/microsoft/sbom-tool/releases/download/v4.1.5/sbom-tool-win-x64.exe",
+    "executableSha256": "625767b371b7fdd58f40f618b8a86da0247a33c89e419039c86b4edba1dad4b5"
+  }
+}

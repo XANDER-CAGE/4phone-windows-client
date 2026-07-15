@@ -85,12 +85,12 @@ cd clients
   `d6a0e7f76611c3a6f530ee051e3e7a622bb1748c`
 - проверку результата патча по blob
   `cdc99ff9ed5ba4d6ef2ba8c5740ff23f58c3c86c`
-- Opus и pugixml через зафиксированный baseline vcpkg
+- Opus, pugixml и WinSparkle через зафиксированный baseline vcpkg
 - Windows Schannel для TLS без поставки OpenSSL
 - обязательную проверку сертификата SIP-сервера
 
-Результат: `microsip/Release/4phone.exe`, `langpack_russian.txt` и
-`langpack_uzbek.txt`.
+Результат: `microsip/Release/4phone.exe`, `WinSparkle.dll`,
+`langpack_russian.txt` и `langpack_uzbek.txt`.
 
 ### Установщик Windows
 
@@ -120,26 +120,27 @@ cd clients
 
 ### GitHub Actions
 
-Workflow `.github/workflows/build-windows.yml` собирает Release Win32 на
-закрепленном runner `windows-2022`. Он запускается вручную из вкладки Actions
-или автоматически при изменении исходников клиента и публикует artifact
-`4phone-win32-<номер запуска>` сроком на 30 дней. В artifact входят
-`4phone-setup.exe`, его контрольная сумма SHA-256, portable-версия
-`4phone.exe`, два языковых пакета и контрольная сумма portable-версии.
+Workflow `.github/workflows/build-windows.yml` проверяет pull request и
+изменения `main`, собирает Release Win32 на runner `windows-2022` и публикует
+временный CI artifact. Сторонние GitHub Actions закреплены по полному commit
+SHA.
+
+Workflow `.github/workflows/release-windows.yml` запускается только по тегу.
+Beta выпускается как явно неподписанный prerelease. Stable требует отдельные
+SignPath-подписи EXE и installer с timestamp, затем Ed25519-подпись
+WinSparkle, SPDX SBOM, SHA-256 и GitHub provenance. Закрепленные версии и
+хеши release-инструментов находятся в `build/release-config.json`. Полная
+процедура описана в `RELEASE.md`.
 
 Backend пока выдает транспорт `udp` по умолчанию. Перед переключением
 `SOFTPHONE_SIP_TRANSPORT=tls` нужно продлить сертификат `sip.4phone.uz`.
 Проверка 13 июля 2026 года показала, что сертификат истек 8 июля, а
 `certbot.service` завис в DNS hook с 8 июня.
 
-До публичного выпуска еще нужно:
-
-1. Добавить цифровую подпись установщика и исполняемого файла.
-2. Заменить исходные иконки MicroSIP на ресурсы 4phone.
-3. Поднять собственный подписанный канал обновлений.
-
-До появления собственного канала клиент не обращается к серверу обновлений
-MicroSIP.
+Клиент использует собственный appcast
+`https://api.4phone.uz/api/client-updates/windows/appcast.xml`, встроенный
+Ed25519 public key и пользовательское подтверждение установки. Он не
+обращается к серверу обновлений MicroSIP.
 
 ## Лицензирование
 
@@ -155,3 +156,4 @@ MicroSIP.
 - `PRIVACY.md`: обработка данных клиентом
 - `SECURITY.md`: приватное сообщение об уязвимостях
 - `CODE_SIGNING_POLICY.md`: порядок Authenticode и Ed25519-подписи
+- `RELEASE.md`: защищенная процедура beta и stable-релизов

@@ -1,0 +1,766 @@
+name: Release 4phone for Windows
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  actions: read
+  attestations: write
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-4phone-windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-win32:
+    name: Sign and release Win32
+    runs-on: windows-2022
+    timeout-minutes: 300
+    environment: release-signing
+
+    steps:
+      - name: Checkout tagged source
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate tag and release metadata
+        id: metadata
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          Set-StrictMode -Version Latest
+
+          python .\build\validate-release-config.py
+          python .\tests\test_release_tools.py
+
+          $const = Get-Content -Raw .\microsip\const.h
+          $displayMatch = [regex]::Match(
+            $const,
+            '#define\s+_GLOBAL_VERSION\s+"([^"]+)"'
+          )
+          $buildMatch = [regex]::Match(
+            $const,
+            '#define\s+_GLOBAL_BUILD_VERSION\s+"([^"]+)"'
+          )
+          $numericMatch = [regex]::Match(
+            $const,
+            '#define\s+_GLOBAL_VERSION_COMMA\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)'
+          )
+          if (
+            -not $displayMatch.Success -or
+            -not $buildMatch.Success -or
+            -not $numericMatch.Success
+          ) {
+            throw "Не удалось прочитать версию из microsip/const.h"
+          }
+
+          $displayVersion = $displayMatch.Groups[1].Value
+          $buildVersion = $buildMatch.Groups[1].Value
+          $numericVersion = (
+            1..4 |
+              ForEach-Object { $numericMatch.Groups[$_].Value }
+          ) -join "."
+          if ($buildVersion -ne $numericVersion) {
+            throw "_GLOBAL_BUILD_VERSION и _GLOBAL_VERSION_COMMA различаются"
+          }
+          if ($env:GITHUB_REF_NAME -ne "v$displayVersion") {
+            throw "Тег должен точно совпадать с v_GLOBAL_VERSION"
+          }
+
+          $isBeta = $displayVersion -match '(?i)(?:^|[._-])beta(?:[._-]?\d+)?$'
+          $channel = if ($isBeta) { "beta" } else { "stable" }
+          $appcastName = if ($isBeta) {
+            "appcast-beta.xml"
+          } else {
+            "appcast.xml"
+          }
+
+          & git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          if ($LASTEXITCODE -ne 0) {
+            throw "Release commit не принадлежит ветке main"
+          }
+
+          & gh release view $env:GITHUB_REF_NAME `
+            --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "GitHub Release для этого тега уже существует"
+          }
+
+          $publishedAt = (
+            & git show -s --format=%cI $env:GITHUB_SHA
+          ).Trim()
+          if ($LASTEXITCODE -ne 0 -or -not $publishedAt) {
+            throw "Не удалось получить время release commit"
+          }
+
+          "display_version=$displayVersion" >> $env:GITHUB_OUTPUT
+          "build_version=$buildVersion" >> $env:GITHUB_OUTPUT
+          "channel=$channel" >> $env:GITHUB_OUTPUT
+          "appcast_name=$appcastName" >> $env:GITHUB_OUTPUT
+          "published_at=$publishedAt" >> $env:GITHUB_OUTPUT
+
+      - name: Validate generated sources
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check Pillow==11.3.0
+          python .\build\generate-brand-assets.py --check
+          python .\build\validate-langpacks.py
+          python .\build\test-xml-compat.py
+
+      - name: Build unsigned 4phone executable
+        shell: pwsh
+        run: .\build\build-windows.ps1
+
+      - name: Verify SignPath configuration
+        if: steps.metadata.outputs.channel == 'stable'
+        shell: pwsh
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          SIGNPATH_PROJECT_SLUG: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          SIGNPATH_EXE_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_EXE_ARTIFACT_CONFIGURATION_SLUG }}
+          SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+        run: |
+          $required = [ordered]@{
+            SIGNPATH_API_TOKEN = $env:SIGNPATH_API_TOKEN
+            SIGNPATH_ORGANIZATION_ID = $env:SIGNPATH_ORGANIZATION_ID
+            SIGNPATH_PROJECT_SLUG = $env:SIGNPATH_PROJECT_SLUG
+            SIGNPATH_SIGNING_POLICY_SLUG = $env:SIGNPATH_SIGNING_POLICY_SLUG
+            SIGNPATH_EXE_ARTIFACT_CONFIGURATION_SLUG =
+              $env:SIGNPATH_EXE_ARTIFACT_CONFIGURATION_SLUG
+            SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG =
+              $env:SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG
+          }
+          $missing = @(
+            $required.GetEnumerator() |
+              Where-Object { [string]::IsNullOrWhiteSpace($_.Value) } |
+              ForEach-Object { $_.Key }
+          )
+          if ($missing.Count -gt 0) {
+            throw "Не настроены параметры SignPath: $($missing -join ', ')"
+          }
+
+      - name: Upload unsigned executable for SignPath
+        id: upload-unsigned-exe
+        if: steps.metadata.outputs.channel == 'stable'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: signpath-unsigned-exe-${{ github.run_id }}
+          path: microsip/Release/4phone.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign executable with SignPath
+        if: steps.metadata.outputs.channel == 'stable'
+        uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_EXE_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-exe.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: "7200"
+          output-artifact-directory: ${{ runner.temp }}\signpath-exe
+
+      - name: Install and verify signed executable
+        if: steps.metadata.outputs.channel == 'stable'
+        shell: pwsh
+        run: |
+          $candidates = @(
+            Get-ChildItem `
+              -Path "${{ runner.temp }}\signpath-exe" `
+              -Filter "4phone.exe" `
+              -File `
+              -Recurse
+          )
+          if ($candidates.Count -ne 1) {
+            throw "SignPath должен вернуть ровно один 4phone.exe"
+          }
+          Copy-Item -Force `
+            $candidates[0].FullName `
+            ".\microsip\Release\4phone.exe"
+
+          $signature = Get-AuthenticodeSignature `
+            ".\microsip\Release\4phone.exe"
+          if ($signature.Status -ne "Valid") {
+            throw "Недействительная Authenticode-подпись EXE: $($signature.Status)"
+          }
+          if ($null -eq $signature.TimeStamperCertificate) {
+            throw "У Authenticode-подписи EXE отсутствует timestamp"
+          }
+          if (
+            $signature.SignerCertificate.Subject -notmatch
+              [regex]::Escape("SignPath Foundation")
+          ) {
+            throw "EXE подписан неожиданным издателем"
+          }
+          Write-Host "EXE publisher: $($signature.SignerCertificate.Subject)"
+
+      - name: Confirm unsigned beta executable
+        if: steps.metadata.outputs.channel == 'beta'
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature `
+            ".\microsip\Release\4phone.exe"
+          if ($signature.Status -ne "NotSigned") {
+            throw "Unsigned beta неожиданно содержит Authenticode-подпись"
+          }
+
+      - name: Install pinned Inno Setup
+        id: inno
+        shell: pwsh
+        run: |
+          $config = Get-Content -Raw `
+            ".\build\release-config.json" |
+              ConvertFrom-Json
+          $download = Join-Path `
+            $env:RUNNER_TEMP `
+            "innosetup-$($config.innoSetup.version).exe"
+          Invoke-WebRequest `
+            -Uri $config.innoSetup.installerUrl `
+            -OutFile $download
+          $actualHash = (
+            Get-FileHash -Algorithm SHA256 $download
+          ).Hash.ToLowerInvariant()
+          if ($actualHash -ne $config.innoSetup.installerSha256) {
+            throw "SHA-256 Inno Setup не совпадает"
+          }
+          $signature = Get-AuthenticodeSignature $download
+          if ($signature.Status -ne "Valid") {
+            throw "Недействительная подпись дистрибутива Inno Setup"
+          }
+
+          $installDirectory = Join-Path `
+            $env:RUNNER_TEMP `
+            "inno-$($config.innoSetup.version)"
+          $process = Start-Process `
+            -FilePath $download `
+            -ArgumentList @(
+              "/VERYSILENT",
+              "/SUPPRESSMSGBOXES",
+              "/NORESTART",
+              "/SP-",
+              "/DIR=`"$installDirectory`""
+            ) `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Установка Inno Setup завершилась с кодом $($process.ExitCode)"
+          }
+          $iscc = Join-Path $installDirectory "ISCC.exe"
+          if (-not (Test-Path $iscc -PathType Leaf)) {
+            throw "ISCC.exe не найден после установки"
+          }
+          "iscc_path=$iscc" >> $env:GITHUB_OUTPUT
+
+      - name: Build installer with finalized executable
+        shell: pwsh
+        run: |
+          .\build\build-installer.ps1 `
+            -IsccPath "${{ steps.inno.outputs.iscc_path }}"
+
+      - name: Upload unsigned installer for SignPath
+        id: upload-unsigned-installer
+        if: steps.metadata.outputs.channel == 'stable'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: signpath-unsigned-installer-${{ github.run_id }}
+          path: microsip/Release/4phone-setup.exe
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Sign installer with SignPath
+        if: steps.metadata.outputs.channel == 'stable'
+        uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_INSTALLER_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-installer.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: "7200"
+          output-artifact-directory: ${{ runner.temp }}\signpath-installer
+
+      - name: Install and verify signed installer
+        if: steps.metadata.outputs.channel == 'stable'
+        shell: pwsh
+        run: |
+          $candidates = @(
+            Get-ChildItem `
+              -Path "${{ runner.temp }}\signpath-installer" `
+              -Filter "4phone-setup.exe" `
+              -File `
+              -Recurse
+          )
+          if ($candidates.Count -ne 1) {
+            throw "SignPath должен вернуть ровно один 4phone-setup.exe"
+          }
+          Copy-Item -Force `
+            $candidates[0].FullName `
+            ".\microsip\Release\4phone-setup.exe"
+
+          $signature = Get-AuthenticodeSignature `
+            ".\microsip\Release\4phone-setup.exe"
+          if ($signature.Status -ne "Valid") {
+            throw "Недействительная подпись installer: $($signature.Status)"
+          }
+          if ($null -eq $signature.TimeStamperCertificate) {
+            throw "У подписи installer отсутствует timestamp"
+          }
+          if (
+            $signature.SignerCertificate.Subject -notmatch
+              [regex]::Escape("SignPath Foundation")
+          ) {
+            throw "Installer подписан неожиданным издателем"
+          }
+          Write-Host "Installer publisher: $($signature.SignerCertificate.Subject)"
+
+      - name: Confirm unsigned beta installer
+        if: steps.metadata.outputs.channel == 'beta'
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature `
+            ".\microsip\Release\4phone-setup.exe"
+          if ($signature.Status -ne "NotSigned") {
+            throw "Unsigned beta installer неожиданно содержит Authenticode"
+          }
+
+      - name: Install pinned WinSparkle tool
+        id: winsparkle
+        shell: pwsh
+        run: |
+          $config = Get-Content -Raw `
+            ".\build\release-config.json" |
+              ConvertFrom-Json
+          $archive = Join-Path `
+            $env:RUNNER_TEMP `
+            "WinSparkle-$($config.winSparkle.version).zip"
+          Invoke-WebRequest `
+            -Uri $config.winSparkle.archiveUrl `
+            -OutFile $archive
+          $actualHash = (
+            Get-FileHash -Algorithm SHA256 $archive
+          ).Hash.ToLowerInvariant()
+          if ($actualHash -ne $config.winSparkle.archiveSha256) {
+            throw "SHA-256 WinSparkle не совпадает"
+          }
+
+          $destination = Join-Path `
+            $env:RUNNER_TEMP `
+            "winsparkle-$($config.winSparkle.version)"
+          Expand-Archive `
+            -Path $archive `
+            -DestinationPath $destination `
+            -Force
+          $tools = @(
+            Get-ChildItem `
+              -Path $destination `
+              -Filter "winsparkle-tool.exe" `
+              -File `
+              -Recurse
+          )
+          if ($tools.Count -ne 1) {
+            throw "В архиве WinSparkle должен быть один winsparkle-tool.exe"
+          }
+          "tool_path=$($tools[0].FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Sign and verify installer for WinSparkle
+        id: ed25519
+        shell: pwsh
+        env:
+          PRIVATE_KEY: ${{ secrets.WINSPARKLE_ED25519_PRIVATE_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PRIVATE_KEY)) {
+            throw "Не задан WINSPARKLE_ED25519_PRIVATE_KEY"
+          }
+          $config = Get-Content -Raw `
+            ".\build\release-config.json" |
+              ConvertFrom-Json
+          $tool = "${{ steps.winsparkle.outputs.tool_path }}"
+          $installer = (
+            Resolve-Path ".\microsip\Release\4phone-setup.exe"
+          ).Path
+          $keyFile = Join-Path $env:RUNNER_TEMP "winsparkle-private.key"
+          try {
+            [System.IO.File]::WriteAllText(
+              $keyFile,
+              $env:PRIVATE_KEY.Trim(),
+              [System.Text.Encoding]::ASCII
+            )
+            $publicKeyOutput = @(
+              & $tool public-key --private-key-file $keyFile 2>&1
+            ) -join "`n"
+            if ($LASTEXITCODE -ne 0) {
+              throw "winsparkle-tool не прочитал закрытый ключ"
+            }
+            if (
+              $publicKeyOutput -notmatch
+                [regex]::Escape($config.winSparkle.ed25519PublicKey)
+            ) {
+              throw "Закрытый WinSparkle-ключ не соответствует клиенту"
+            }
+
+            $signOutput = @(
+              & $tool sign `
+                --verbose `
+                --private-key-file $keyFile `
+                $installer 2>&1
+            ) -join "`n"
+            if ($LASTEXITCODE -ne 0) {
+              throw "winsparkle-tool не подписал installer"
+            }
+          }
+          finally {
+            Remove-Item -Force -ErrorAction SilentlyContinue $keyFile
+          }
+
+          $match = [regex]::Match(
+            $signOutput,
+            'sparkle:edSignature="([A-Za-z0-9+/]{86}==)"\s+length="([1-9]\d*)"'
+          )
+          if (-not $match.Success) {
+            throw "Не удалось разобрать Ed25519-подпись WinSparkle"
+          }
+          $signature = $match.Groups[1].Value
+          $reportedLength = [int64]$match.Groups[2].Value
+          $actualLength = (Get-Item $installer).Length
+          if ($reportedLength -ne $actualLength) {
+            throw "WinSparkle сообщил неверный размер installer"
+          }
+
+          & $tool verify `
+            --public-key $config.winSparkle.ed25519PublicKey `
+            --signature $signature `
+            $installer
+          if ($LASTEXITCODE -ne 0) {
+            throw "Ed25519-проверка installer завершилась ошибкой"
+          }
+          "signature=$signature" >> $env:GITHUB_OUTPUT
+          "length=$actualLength" >> $env:GITHUB_OUTPUT
+
+      - name: Package release files and appcast
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $releaseDirectory = Join-Path $PWD "artifacts\release"
+          $portableDirectory = Join-Path $PWD "artifacts\portable"
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue `
+            $releaseDirectory, `
+            $portableDirectory
+          New-Item -ItemType Directory -Force `
+            $releaseDirectory, `
+            $portableDirectory | Out-Null
+
+          $portableFiles = @(
+            ".\microsip\Release\4phone.exe",
+            ".\microsip\Release\WinSparkle.dll",
+            ".\microsip\Release\langpack_russian.txt",
+            ".\microsip\Release\langpack_uzbek.txt",
+            ".\LICENSE",
+            ".\THIRD_PARTY_NOTICES.md",
+            ".\PRIVACY.md",
+            ".\SECURITY.md"
+          )
+          foreach ($source in $portableFiles) {
+            if (-not (Test-Path $source -PathType Leaf)) {
+              throw "Не найден release-файл: $source"
+            }
+            Copy-Item -Force $source $portableDirectory
+          }
+
+          $config = Get-Content -Raw `
+            ".\build\release-config.json" |
+              ConvertFrom-Json
+          $metadata = [ordered]@{
+            schemaVersion = 1
+            repository = $env:GITHUB_REPOSITORY
+            commit = $env:GITHUB_SHA
+            tag = $env:GITHUB_REF_NAME
+            channel = "${{ steps.metadata.outputs.channel }}"
+            displayVersion = "${{ steps.metadata.outputs.display_version }}"
+            buildVersion = "${{ steps.metadata.outputs.build_version }}"
+            publishedAt = "${{ steps.metadata.outputs.published_at }}"
+            tools = [ordered]@{
+              innoSetup = $config.innoSetup.version
+              winSparkle = $config.winSparkle.version
+              sbomTool = $config.sbomTool.version
+              runner = "windows-2022"
+            }
+          }
+          $metadataPath = Join-Path `
+            $portableDirectory `
+            "BUILD-METADATA.json"
+          [System.IO.File]::WriteAllText(
+            $metadataPath,
+            ($metadata | ConvertTo-Json -Depth 5) + "`n",
+            [System.Text.UTF8Encoding]::new($false)
+          )
+
+          $timestamp = [datetimeoffset]::Parse(
+            "${{ steps.metadata.outputs.published_at }}"
+          ).UtcDateTime
+          Get-ChildItem -Path $portableDirectory -File |
+            ForEach-Object { $_.LastWriteTimeUtc = $timestamp }
+
+          $portableArchive = Join-Path `
+            $releaseDirectory `
+            "4phone-portable-win32.zip"
+          Compress-Archive `
+            -Path "$portableDirectory\*" `
+            -DestinationPath $portableArchive `
+            -CompressionLevel Optimal
+
+          Copy-Item -Force `
+            ".\microsip\Release\4phone-setup.exe" `
+            (Join-Path $releaseDirectory "4phone-setup.exe")
+          Copy-Item -Force `
+            $metadataPath `
+            (Join-Path $releaseDirectory "BUILD-METADATA.json")
+
+          if ("${{ steps.metadata.outputs.channel }}" -eq "beta") {
+            $warning = @"
+          This is an unsigned beta build.
+          The executable and installer do not have Authenticode signatures.
+          Use it only for testing. Stable automatic updates do not consume this feed.
+          "@
+            [System.IO.File]::WriteAllText(
+              (Join-Path $releaseDirectory "UNSIGNED-BETA.txt"),
+              $warning.Trim() + "`n",
+              [System.Text.Encoding]::ASCII
+            )
+          }
+
+          $downloadUrl = (
+            "https://github.com/$env:GITHUB_REPOSITORY/releases/download/" +
+            "$env:GITHUB_REF_NAME/4phone-setup.exe"
+          )
+          $notesUrl = (
+            "https://github.com/$env:GITHUB_REPOSITORY/releases/tag/" +
+            $env:GITHUB_REF_NAME
+          )
+          python .\build\generate-appcast.py `
+            --channel "${{ steps.metadata.outputs.channel }}" `
+            --version "${{ steps.metadata.outputs.build_version }}" `
+            --short-version "${{ steps.metadata.outputs.display_version }}" `
+            --signature "${{ steps.ed25519.outputs.signature }}" `
+            --installer (Join-Path $releaseDirectory "4phone-setup.exe") `
+            --download-url $downloadUrl `
+            --release-notes-url $notesUrl `
+            --published-at "${{ steps.metadata.outputs.published_at }}" `
+            --output (
+              Join-Path `
+                $releaseDirectory `
+                "${{ steps.metadata.outputs.appcast_name }}"
+            )
+          if ($LASTEXITCODE -ne 0) {
+            throw "Генерация appcast завершилась ошибкой"
+          }
+
+      - name: Generate and validate SPDX SBOM
+        shell: pwsh
+        run: |
+          $config = Get-Content -Raw `
+            ".\build\release-config.json" |
+              ConvertFrom-Json
+          $tool = Join-Path `
+            $env:RUNNER_TEMP `
+            "sbom-tool-$($config.sbomTool.version).exe"
+          Invoke-WebRequest `
+            -Uri $config.sbomTool.executableUrl `
+            -OutFile $tool
+          $actualHash = (
+            Get-FileHash -Algorithm SHA256 $tool
+          ).Hash.ToLowerInvariant()
+          if ($actualHash -ne $config.sbomTool.executableSha256) {
+            throw "SHA-256 Microsoft SBOM Tool не совпадает"
+          }
+
+          $releaseDirectory = (
+            Resolve-Path ".\artifacts\release"
+          ).Path
+          & $tool generate `
+            -b $releaseDirectory `
+            -bc $PWD.Path `
+            -pn "4phone Windows" `
+            -pv "${{ steps.metadata.outputs.display_version }}" `
+            -ps "Organization: 4phone.uz" `
+            -nsb (
+              "https://github.com/$env:GITHUB_REPOSITORY/releases/tag/" +
+              $env:GITHUB_REF_NAME
+            )
+          if ($LASTEXITCODE -ne 0) {
+            throw "Генерация SBOM завершилась ошибкой"
+          }
+
+          $validation = Join-Path `
+            $env:RUNNER_TEMP `
+            "sbom-validation.json"
+          & $tool validate `
+            -b $releaseDirectory `
+            -o $validation `
+            -mi "SPDX:2.2"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Проверка SBOM завершилась ошибкой"
+          }
+
+          $manifests = @(
+            Get-ChildItem `
+              -Path (Join-Path $releaseDirectory "_manifest") `
+              -Filter "manifest.spdx.json" `
+              -File `
+              -Recurse
+          )
+          if ($manifests.Count -ne 1) {
+            throw "SBOM Tool должен создать один SPDX manifest"
+          }
+          Copy-Item -Force `
+            $manifests[0].FullName `
+            (Join-Path $releaseDirectory "4phone.spdx.json")
+          Copy-Item -Force `
+            $validation `
+            (Join-Path $releaseDirectory "SBOM-VALIDATION.json")
+          Remove-Item -Recurse -Force `
+            (Join-Path $releaseDirectory "_manifest")
+
+      - name: Attest release provenance
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4
+        with:
+          subject-path: artifacts/release/*
+
+      - name: Attest installer SBOM
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4
+        with:
+          subject-path: artifacts/release/4phone-setup.exe
+          sbom-path: artifacts/release/4phone.spdx.json
+
+      - name: Export provenance and checksums
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseDirectory = (
+            Resolve-Path ".\artifacts\release"
+          ).Path
+          Push-Location $releaseDirectory
+          try {
+            & gh attestation download `
+              ".\4phone-setup.exe" `
+              --repo $env:GITHUB_REPOSITORY
+            if ($LASTEXITCODE -ne 0) {
+              throw "Не удалось выгрузить provenance bundle"
+            }
+            $bundles = @(
+              Get-ChildItem -Path . -Filter "*.jsonl" -File
+            )
+            if ($bundles.Count -ne 1) {
+              throw "Ожидался один provenance bundle"
+            }
+            Move-Item -Force `
+              $bundles[0].FullName `
+              ".\4phone-setup.exe.provenance.jsonl"
+
+            $checksumLines = @(
+              Get-ChildItem -Path . -File |
+                Where-Object { $_.Name -ne "SHA256SUMS.txt" } |
+                Sort-Object -Property Name |
+                ForEach-Object {
+                  $hash = (
+                    Get-FileHash -Algorithm SHA256 $_.FullName
+                  ).Hash.ToLowerInvariant()
+                  "$hash  $($_.Name)"
+                }
+            )
+            [System.IO.File]::WriteAllText(
+              (Join-Path $releaseDirectory "SHA256SUMS.txt"),
+              ($checksumLines -join "`n") + "`n",
+              [System.Text.Encoding]::ASCII
+            )
+          }
+          finally {
+            Pop-Location
+          }
+
+      - name: Upload finalized release bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: 4phone-release-${{ steps.metadata.outputs.display_version }}
+          path: artifacts/release/*
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $releaseDirectory = (
+            Resolve-Path ".\artifacts\release"
+          ).Path
+          $notesPath = Join-Path $env:RUNNER_TEMP "RELEASE_NOTES.md"
+          if ("${{ steps.metadata.outputs.channel }}" -eq "beta") {
+            $summary = @"
+          # 4phone ${{ steps.metadata.outputs.display_version }}
+
+          This is an unsigned beta build for testing.
+
+          The installer and executable intentionally have no Authenticode signature.
+          The installer is protected by the WinSparkle Ed25519 update signature and
+          is not published to the stable appcast.
+          "@
+          } else {
+            $summary = @"
+          # 4phone ${{ steps.metadata.outputs.display_version }}
+
+          Stable Windows release signed by SignPath Foundation.
+
+          Both the application executable and installer have timestamped
+          Authenticode signatures. SHA-256 checksums, SPDX SBOM and GitHub
+          provenance attestations are attached.
+          "@
+          }
+          [System.IO.File]::WriteAllText(
+            $notesPath,
+            $summary.Trim() + "`n",
+            [System.Text.UTF8Encoding]::new($false)
+          )
+
+          $assets = @(
+            Get-ChildItem -Path $releaseDirectory -File |
+              Sort-Object -Property Name |
+              ForEach-Object { $_.FullName }
+          )
+          $arguments = @(
+            "release",
+            "create",
+            $env:GITHUB_REF_NAME
+          )
+          $arguments += $assets
+          $arguments += @(
+            "--repo",
+            $env:GITHUB_REPOSITORY,
+            "--verify-tag",
+            "--title",
+            "4phone ${{ steps.metadata.outputs.display_version }}",
+            "--notes-file",
+            $notesPath
+          )
+          if ("${{ steps.metadata.outputs.channel }}" -eq "beta") {
+            $arguments += "--prerelease"
+          }
+          & gh @arguments
+          if ($LASTEXITCODE -ne 0) {
+            throw "Публикация GitHub Release завершилась ошибкой"
+          }
