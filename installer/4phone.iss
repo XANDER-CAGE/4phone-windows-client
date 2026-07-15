@@ -1,9 +1,9 @@
 #ifndef AppVersion
-  #define AppVersion "3.22.3-4phone.1"
+  #define AppVersion "3.22.3-4phone.2-beta.1"
 #endif
 
 #ifndef AppVersionNumeric
-  #define AppVersionNumeric "3.22.3.6"
+  #define AppVersionNumeric "3.22.3.7"
 #endif
 
 #ifndef SourceDir
